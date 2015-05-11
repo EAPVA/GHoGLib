@@ -25,8 +25,19 @@ public:
 		cv::Mat phase) = 0;
 };
 
-GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
-	GradientCallback* callback);
+class GradientCalc
+{
+public:
+	GradientCalc(GradientCallback* callback);
+	~GradientCalc();
+
+	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img);
+
+protected:
+	GradientCallback* _callback;
+
+	void calc_gradient_impl(cv::Mat input_img);
+};
 
 } /* namespace lib */
 } /* namespace ghog */
