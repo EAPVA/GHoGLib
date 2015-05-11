@@ -19,7 +19,7 @@ GHogDescriptor::~GHogDescriptor()
 
 Histogram GHogDescriptor::get_histogram(int num_hist)
 {
-	return _histogram_list.at(num_hist);
+	return _cell.at(num_hist);
 }
 
 } /* namespace lib */

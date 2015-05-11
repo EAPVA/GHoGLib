@@ -19,7 +19,7 @@ class GHogDescriptor
 {
 public:
 	GHogDescriptor(std::vector< Histogram > histogram_list) :
-		_histogram_list(histogram_list)
+		_cell(histogram_list)
 	{
 	}
 	virtual ~GHogDescriptor();
@@ -27,7 +27,7 @@ public:
 	Histogram get_histogram(int num_hist);
 
 protected:
-	std::vector< Histogram > _histogram_list;
+	std::vector< Histogram > _cell;
 };
 
 } /* namespace lib */
