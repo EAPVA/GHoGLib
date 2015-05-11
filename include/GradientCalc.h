@@ -21,8 +21,7 @@ class GradientCallback
 {
 public:
 	virtual ~GradientCallback() = 0;
-	virtual void operator()(cv::Mat magnitude,
-		cv::Mat phase) = 0;
+	virtual void operator()(cv::Mat gradients) = 0;
 };
 
 class GradientCalc
