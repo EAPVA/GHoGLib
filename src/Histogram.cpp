@@ -15,7 +15,7 @@ namespace lib
 Histogram::Histogram(int num_bins,
 	cv::Mat gradients)
 {
-	_bin_size = 360.0 / (float)num_bins;
+	_bin_size = 360.0f / (float)num_bins;
 	_bin_list = cv::Mat(1, num_bins, CV_32FC1, 0.0f);
 }
 
@@ -52,7 +52,7 @@ float Histogram::get_max_bin_val(int bin_pos)
 
 float Histogram::get_mid_bin_val(int bin_pos)
 {
-	return get_min_bin_val(bin_pos) + (_bin_size / 2);
+	return get_min_bin_val(bin_pos) + (_bin_size / 2.0f);
 }
 
 } /* namespace lib */
