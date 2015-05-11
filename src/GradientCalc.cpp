@@ -12,7 +12,7 @@ namespace ghog
 namespace lib
 {
 
-GradientCalc::GradientCalc(GradientCallback* callback) :
+GradientCalc::GradientCalc(ImageCallback* callback) :
 	_callback(callback)
 {
 
