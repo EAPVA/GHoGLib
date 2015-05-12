@@ -30,9 +30,8 @@ GHOG_LIB_STATUS GradientCalc::calc_gradient(cv::Mat input_img)
 
 void GradientCalc::calc_gradient_impl(cv::Mat input_img)
 {
-	(*_callback)(input_img, input_img);
+	(*_callback)(input_img);
 }
 
-}
-/* namespace lib */
+} /* namespace lib */
 } /* namespace ghog */
