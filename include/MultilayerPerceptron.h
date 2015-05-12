@@ -23,7 +23,7 @@ namespace ghog
 namespace lib
 {
 
-class MultilayerPerceptron : public IClassifier
+class MultilayerPerceptron: public IClassifier
 {
 public:
 	MultilayerPerceptron(cv::Mat layers,
@@ -31,14 +31,22 @@ public:
 		bool random_weights = true);
 	virtual ~MultilayerPerceptron();
 
+	void train(cv::Mat inputs,
+		cv::Mat expected_outputs);
+	virtual void classify(cv::Mat input);
+
+	void load(std::string filename);
+	void save(std::string filename);
+
+	void set_parameter(std::string parameter,
+		std::string value);
+	std::string get_parameter(std::string parameter);
+
 	cv::Mat feed_forward(cv::Mat input);
 	void backpropagation(cv::Mat expected,
 		cv::Mat actual);
 
 	void update_weights();
-
-	void train(cv::Mat inputs,
-		cv::Mat expected_outputs);
 
 	void train_multiple_times(cv::Mat inputs,
 		cv::Mat expected_outputs,

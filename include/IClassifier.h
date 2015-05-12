@@ -26,7 +26,9 @@ class ClassifierCallback
 class IClassifier
 {
 public:
-	virtual ~IClassifier() = 0;
+	virtual ~IClassifier()
+	{
+	}
 
 	virtual void train(cv::Mat train_data,
 		cv::Mat expected_outputs) = 0;
@@ -36,8 +38,8 @@ public:
 	virtual void save(std::string filename) = 0;
 
 	virtual void set_parameter(std::string parameter,
-		std::string value);
-	virtual std::string get_parameter(std::string parameter);
+		std::string value) = 0;
+	virtual std::string get_parameter(std::string parameter) = 0;
 
 protected:
 	ClassifierCallback* _callback;

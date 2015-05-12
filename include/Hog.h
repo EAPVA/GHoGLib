@@ -23,7 +23,9 @@ namespace lib
 class HogCallback
 {
 public:
-	virtual ~HogCallback() = 0;
+	virtual ~HogCallback()
+	{
+	}
 	virtual void operator()(std::vector< cv::Rect > found_objects) = 0;
 };
 

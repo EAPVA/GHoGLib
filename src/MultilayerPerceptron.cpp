@@ -63,6 +63,44 @@ ghog::lib::MultilayerPerceptron::~MultilayerPerceptron()
 	// TODO Auto-generated destructor stub
 }
 
+void ghog::lib::MultilayerPerceptron::train(cv::Mat inputs,
+	cv::Mat expected_outputs)
+{
+	cv::Mat output;
+	for(int i = 0; i < inputs.rows; ++i)
+	{
+		output = feed_forward(inputs.row(i));
+		backpropagation(expected_outputs.row(i), output);
+		update_weights();
+	}
+}
+
+void ghog::lib::MultilayerPerceptron::classify(cv::Mat input)
+{
+
+}
+
+void ghog::lib::MultilayerPerceptron::load(std::string filename)
+{
+
+}
+
+void ghog::lib::MultilayerPerceptron::save(std::string filename)
+{
+
+}
+
+void ghog::lib::MultilayerPerceptron::set_parameter(std::string parameter,
+	std::string value)
+{
+
+}
+
+std::string ghog::lib::MultilayerPerceptron::get_parameter(std::string parameter)
+{
+
+}
+
 cv::Mat ghog::lib::MultilayerPerceptron::feed_forward(cv::Mat input)
 {
 	float* input_ptr = input.ptr< float >(0);
@@ -153,18 +191,6 @@ void ghog::lib::MultilayerPerceptron::update_weights()
 					* _learning_rate;
 			}
 		}
-	}
-}
-
-void ghog::lib::MultilayerPerceptron::train(cv::Mat inputs,
-	cv::Mat expected_outputs)
-{
-	cv::Mat output;
-	for(int i = 0; i < inputs.rows; ++i)
-	{
-		output = feed_forward(inputs.row(i));
-		backpropagation(expected_outputs.row(i), output);
-		update_weights();
 	}
 }
 

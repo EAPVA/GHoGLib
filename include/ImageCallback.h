@@ -18,7 +18,9 @@ namespace lib
 class ImageCallback
 {
 public:
-	virtual ~ImageCallback() = 0;
+	virtual ~ImageCallback()
+	{
+	}
 	virtual void operator()(cv::Mat ret_mat) = 0;
 };
 
