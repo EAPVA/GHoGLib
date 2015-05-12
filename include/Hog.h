@@ -12,8 +12,8 @@
 #include <string>
 
 #include <include/MultilayerPerceptron.h>
-
 #include <include/GHogLibConstants.h>
+#include <include/Settings.h>
 
 namespace ghog
 {
@@ -35,12 +35,14 @@ public:
 	virtual ~Hog();
 
 	GHOG_LIB_STATUS locate(cv::Mat img,
-		cv::Rect roi = _roi,
-		cv::Size window_size = _window_size,
-		cv::Size window_stride = _window_stride);
+		cv::Rect roi,
+		cv::Size window_size,
+		cv::Size window_stride);
+
+	void set_classifier(IClassifier* classifier);
 
 protected:
-	MultilayerPerceptron _mlp;
+	IClassifier* _classifier;
 	HogCallback* _callback;
 	Settings _settings;
 

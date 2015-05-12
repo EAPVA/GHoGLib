@@ -7,7 +7,7 @@
 
 #include <include/MultilayerPerceptron.h>
 
-MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
+ghog::lib::MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
 	float learning_rate,
 	bool random_weights) :
 	_layers(layers),
@@ -58,12 +58,12 @@ MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
 	}
 }
 
-MultilayerPerceptron::~MultilayerPerceptron()
+ghog::lib::MultilayerPerceptron::~MultilayerPerceptron()
 {
 	// TODO Auto-generated destructor stub
 }
 
-cv::Mat MultilayerPerceptron::feed_forward(cv::Mat input)
+cv::Mat ghog::lib::MultilayerPerceptron::feed_forward(cv::Mat input)
 {
 	float* input_ptr = input.ptr< float >(0);
 	float* output_ptr = _last_results.ptr< float >(0);
@@ -95,7 +95,7 @@ cv::Mat MultilayerPerceptron::feed_forward(cv::Mat input)
 	return _last_results.row(_last_results.rows - 1).colRange(0, num_outputs);
 }
 
-void MultilayerPerceptron::backpropagation(cv::Mat expected,
+void ghog::lib::MultilayerPerceptron::backpropagation(cv::Mat expected,
 	cv::Mat actual)
 {
 	cv::Mat error = actual - expected;
@@ -133,7 +133,7 @@ void MultilayerPerceptron::backpropagation(cv::Mat expected,
 	}
 }
 
-void MultilayerPerceptron::update_weights()
+void ghog::lib::MultilayerPerceptron::update_weights()
 {
 	int* layer_ptr = _layers.ptr< int >(0);
 	layer_ptr++; //Skip input layer;
@@ -156,7 +156,7 @@ void MultilayerPerceptron::update_weights()
 	}
 }
 
-void MultilayerPerceptron::train(cv::Mat inputs,
+void ghog::lib::MultilayerPerceptron::train(cv::Mat inputs,
 	cv::Mat expected_outputs)
 {
 	cv::Mat output;
@@ -168,7 +168,7 @@ void MultilayerPerceptron::train(cv::Mat inputs,
 	}
 }
 
-void MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
+void ghog::lib::MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
 	cv::Mat expected_outputs,
 	int num_times)
 {
@@ -178,12 +178,12 @@ void MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
 	}
 }
 
-float MultilayerPerceptron::activation(float sum)
+float ghog::lib::MultilayerPerceptron::activation(float sum)
 {
 	return tanh(sum);
 }
 
-float MultilayerPerceptron::activation_derivative(float sum)
+float ghog::lib::MultilayerPerceptron::activation_derivative(float sum)
 {
 	float sec_hyp = 1 / (cosh(sum));
 	return (sec_hyp * sec_hyp);

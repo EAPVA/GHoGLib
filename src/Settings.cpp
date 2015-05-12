@@ -5,7 +5,7 @@
  *      Author: marcelo
  */
 
-#include "Settings.h"
+#include <include/Settings.h>
 
 namespace ghog
 {

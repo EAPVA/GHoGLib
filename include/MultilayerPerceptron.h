@@ -15,7 +15,15 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
-class MultilayerPerceptron
+#include <include/IClassifier.h>
+
+namespace ghog
+{
+
+namespace lib
+{
+
+class MultilayerPerceptron : public IClassifier
 {
 public:
 	MultilayerPerceptron(cv::Mat layers,
@@ -57,4 +65,6 @@ private:
 	int _max_layer_size;
 };
 
+} /* namespace lib */
+} /* namespace ghog */
 #endif /* MULTILAYERPERCEPTRON_H_ */
