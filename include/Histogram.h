@@ -31,6 +31,8 @@ public:
 	cv::Mat get_hist();
 	float get_bin(int bin_pos);
 
+	int find_bin(float phase_val);
+
 	float get_bin_size();
 	float get_min_bin_val(int bin_pos);
 	float get_max_bin_val(int bin_pos);

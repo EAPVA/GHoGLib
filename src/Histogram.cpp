@@ -40,6 +40,16 @@ float Histogram::get_bin(int bin_pos)
 	return _bin_list.at< float >(bin_pos);
 }
 
+int Histogram::find_bin(float phase_val)
+{
+	return (int)floor((phase_val - _bin_size / 2.0f) / _bin_size);
+}
+
+float Histogram::get_bin_size()
+{
+	return _bin_size;
+}
+
 float Histogram::get_min_bin_val(int bin_pos)
 {
 	return _bin_size * bin_pos;
