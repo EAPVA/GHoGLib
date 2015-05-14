@@ -49,8 +49,14 @@ Histogram::Histogram(int num_bins,
 					* mag.at< float >(i, j);
 				_bin_list.at< float >(right_bin) += (0.5 + delta)
 					* mag.at< float >(i, j);
+				mag_total += mag.at< float >(i, j);
 			}
 		}
+	}
+
+	for(int i = 0; i < get_num_of_bins(); ++i)
+	{
+		_bin_list.at< float >(i) /= mag_total;
 	}
 }
 
