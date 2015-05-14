@@ -7,7 +7,11 @@
 
 #include <include/MultilayerPerceptron.h>
 
-ghog::lib::MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
+namespace ghog {
+
+namespace lib {
+
+MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
 	float learning_rate,
 	bool random_weights) :
 	_layers(layers),
@@ -58,12 +62,12 @@ ghog::lib::MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
 	}
 }
 
-ghog::lib::MultilayerPerceptron::~MultilayerPerceptron()
+MultilayerPerceptron::~MultilayerPerceptron()
 {
 	// TODO Auto-generated destructor stub
 }
 
-void ghog::lib::MultilayerPerceptron::train(cv::Mat inputs,
+void MultilayerPerceptron::train(cv::Mat inputs,
 	cv::Mat expected_outputs)
 {
 	cv::Mat output;
@@ -75,33 +79,33 @@ void ghog::lib::MultilayerPerceptron::train(cv::Mat inputs,
 	}
 }
 
-void ghog::lib::MultilayerPerceptron::classify(cv::Mat input)
+void MultilayerPerceptron::classify(cv::Mat input)
 {
 
 }
 
-void ghog::lib::MultilayerPerceptron::load(std::string filename)
+void MultilayerPerceptron::load(std::string filename)
 {
 
 }
 
-void ghog::lib::MultilayerPerceptron::save(std::string filename)
+void MultilayerPerceptron::save(std::string filename)
 {
 
 }
 
-void ghog::lib::MultilayerPerceptron::set_parameter(std::string parameter,
+void MultilayerPerceptron::set_parameter(std::string parameter,
 	std::string value)
 {
 
 }
 
-std::string ghog::lib::MultilayerPerceptron::get_parameter(std::string parameter)
+std::string MultilayerPerceptron::get_parameter(std::string parameter)
 {
-
+	return "";
 }
 
-cv::Mat ghog::lib::MultilayerPerceptron::feed_forward(cv::Mat input)
+cv::Mat MultilayerPerceptron::feed_forward(cv::Mat input)
 {
 	float* input_ptr = input.ptr< float >(0);
 	float* output_ptr = _last_results.ptr< float >(0);
@@ -133,7 +137,7 @@ cv::Mat ghog::lib::MultilayerPerceptron::feed_forward(cv::Mat input)
 	return _last_results.row(_last_results.rows - 1).colRange(0, num_outputs);
 }
 
-void ghog::lib::MultilayerPerceptron::backpropagation(cv::Mat expected,
+void MultilayerPerceptron::backpropagation(cv::Mat expected,
 	cv::Mat actual)
 {
 	cv::Mat error = actual - expected;
@@ -171,7 +175,7 @@ void ghog::lib::MultilayerPerceptron::backpropagation(cv::Mat expected,
 	}
 }
 
-void ghog::lib::MultilayerPerceptron::update_weights()
+void MultilayerPerceptron::update_weights()
 {
 	int* layer_ptr = _layers.ptr< int >(0);
 	layer_ptr++; //Skip input layer;
@@ -194,7 +198,7 @@ void ghog::lib::MultilayerPerceptron::update_weights()
 	}
 }
 
-void ghog::lib::MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
+void MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
 	cv::Mat expected_outputs,
 	int num_times)
 {
@@ -204,13 +208,16 @@ void ghog::lib::MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
 	}
 }
 
-float ghog::lib::MultilayerPerceptron::activation(float sum)
+float MultilayerPerceptron::activation(float sum)
 {
 	return tanh(sum);
 }
 
-float ghog::lib::MultilayerPerceptron::activation_derivative(float sum)
+float MultilayerPerceptron::activation_derivative(float sum)
 {
 	float sec_hyp = 1 / (cosh(sum));
 	return (sec_hyp * sec_hyp);
 }
+
+} /* namespace lib */
+} /* namespace ghog */
