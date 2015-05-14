@@ -36,7 +36,7 @@ public:
 	float get_max_bin_val(int bin_pos);
 	float get_mid_bin_val(int bin_pos);
 
-	float get_num_of_bins();
+	int get_num_of_bins();
 
 protected:
 	int find_bin(float phase_val);

@@ -101,7 +101,7 @@ float Histogram::get_mid_bin_val(int bin_pos)
 	return get_min_bin_val(bin_pos) + (_bin_size / 2.0f);
 }
 
-float Histogram::get_num_of_bins()
+int Histogram::get_num_of_bins()
 {
 	return _bin_list.cols;
 }
