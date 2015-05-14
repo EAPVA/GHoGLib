@@ -21,7 +21,7 @@ public:
 	virtual ~ImageCallback()
 	{
 	}
-	virtual void operator()(cv::Mat ret_mat) = 0;
+	virtual void image_processed(cv::Mat ret_mat) = 0;
 };
 
 } /* namespace lib */

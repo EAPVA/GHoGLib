@@ -22,9 +22,13 @@ public:
 	ImageUtils(ImageCallback* callback);
 	virtual ~ImageUtils();
 
-	GHOG_LIB_STATUS resize(cv::Mat image);
+	GHOG_LIB_STATUS resize(cv::Mat image,
+		cv::Size new_size);
 
 protected:
+	void resize_impl(cv::Mat image,
+		cv::Size new_size);
+
 	ImageCallback* _callback;
 };
 

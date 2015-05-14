@@ -20,7 +20,8 @@ namespace lib
 class ClassifierCallback
 {
 	virtual ~ClassifierCallback() = 0;
-	virtual void operator()(cv::Mat output) = 0;
+	virtual void classification_result(cv::Mat output) = 0;
+	virtual void training_finished() = 0;
 };
 
 class IClassifier

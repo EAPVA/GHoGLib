@@ -26,7 +26,7 @@ public:
 	virtual ~HogCallback()
 	{
 	}
-	virtual void operator()(std::vector< cv::Rect > found_objects) = 0;
+	virtual void objects_detected(std::vector< cv::Rect > found_objects) = 0;
 };
 
 class Hog
@@ -36,14 +36,22 @@ public:
 		std::string settings_file);
 	virtual ~Hog();
 
+	GHOG_LIB_STATUS locate(cv::Mat img);
+
 	GHOG_LIB_STATUS locate(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride);
 
 	void set_classifier(IClassifier* classifier);
+	void set_callback(HogCallback* callback);
 
 protected:
+	void locate_impl(cv::Mat img,
+		cv::Rect roi,
+		cv::Size window_size,
+		cv::Size window_stride);
+
 	IClassifier* _classifier;
 	HogCallback* _callback;
 	Settings _settings;
