@@ -52,7 +52,7 @@ public:
 		cv::Mat expected_outputs,
 		int num_times);
 
-private:
+protected:
 
 	float activation(float sum);
 	float activation_derivative(float sum);
