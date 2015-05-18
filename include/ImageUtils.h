@@ -8,7 +8,7 @@
 #ifndef IMAGEUTILS_H_
 #define IMAGEUTILS_H_
 
-#include <include/GHogLibConstants.h>
+#include <include/GHogLibConstants.inc>
 #include <include/ImageCallback.h>
 
 namespace ghog

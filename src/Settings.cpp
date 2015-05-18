@@ -15,7 +15,10 @@ namespace lib
 Settings::Settings(std::string filename) :
 	_filename(filename)
 {
-	_file.LoadFile(_filename.c_str());
+	while(_file.LoadFile(_filename.c_str()) != tinyxml2::XML_NO_ERROR)
+	{
+		Settings::save_default_settings(filename);
+	}
 }
 
 Settings::~Settings()
@@ -51,8 +54,7 @@ template < >
 std::string Settings::load(std::string module,
 	std::string attribute)
 {
-	return _file.FirstChildElement(module.c_str())->Attribute(
-		attribute.c_str());
+	return _file.FirstChildElement(module.c_str())->Attribute(attribute.c_str());
 }
 
 template < typename T >
@@ -91,6 +93,25 @@ void Settings::save(std::string module,
 void Settings::save_file()
 {
 	_file.SaveFile(_filename.c_str());
+}
+
+void Settings::save_default_settings(std::string filename)
+{
+	tinyxml2::XMLDocument doc;
+	tinyxml2::XMLElement* descriptor_module = doc.NewElement("Descriptor");
+	descriptor_module->SetAttribute("GRID_SIZE_COLS", 1);
+	descriptor_module->SetAttribute("GRID_SIZE_ROWS", 3);
+	descriptor_module->SetAttribute("BLOCK_SIZE_COLS", 1);
+	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS", 1);
+	descriptor_module->SetAttribute("BLOCK_STRIDE_COLS", 1);
+	descriptor_module->SetAttribute("BLOCK_STRIDE_ROWS", 1);
+	descriptor_module->SetAttribute("NUMBER_OF_BINS", 9);
+	doc.InsertEndChild(descriptor_module);
+	tinyxml2::XMLElement* classifier_module = doc.NewElement("Classifier");
+	classifier_module->SetAttribute("TYPE", "MLP");
+	classifier_module->SetAttribute("FILENAME", "mlp.xml");
+	doc.InsertEndChild(classifier_module);
+	doc.SaveFile(filename.c_str());
 }
 
 } /* namespace lib */

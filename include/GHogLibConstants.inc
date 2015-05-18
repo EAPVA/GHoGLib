@@ -8,14 +8,16 @@
 #ifndef GHOGLIBCONSTANTS_H_
 #define GHOGLIBCONSTANTS_H_
 
+#include <opencv2/core/core.hpp>
+
 namespace ghog
 {
 namespace lib
 {
 
-enum GHOG_LIB_STATUS {
-	GHOG_LIB_STATUS_OK = 0,
-	GHOG_LIB_STATUS_UNKNOWN_ERROR = -1
+enum GHOG_LIB_STATUS
+{
+	GHOG_LIB_STATUS_OK = 0, GHOG_LIB_STATUS_UNKNOWN_ERROR = -1
 };
 
 } /* namespace lib */

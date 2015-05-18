@@ -8,7 +8,7 @@
 #ifndef GRADIENTCALC_H_
 #define GRADIENTCALC_H_
 
-#include <include/GHogLibConstants.h>
+#include <include/GHogLibConstants.inc>
 #include <include/ImageCallback.h>
 
 #include <opencv2/core/core.hpp>
@@ -25,6 +25,8 @@ public:
 	~GradientCalc();
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img);
+
+	void set_callback(ImageCallback* callback);
 
 protected:
 	ImageCallback* _callback;

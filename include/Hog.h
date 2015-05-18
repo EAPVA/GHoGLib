@@ -12,7 +12,7 @@
 #include <string>
 
 #include <include/MultilayerPerceptron.h>
-#include <include/GHogLibConstants.h>
+#include <include/GHogLibConstants.inc>
 #include <include/Settings.h>
 
 namespace ghog
@@ -56,12 +56,8 @@ protected:
 	HogCallback* _callback;
 	Settings _settings;
 
-	cv::Rect _roi;
-	cv::Size _window_size; // In pixels
-	cv::Size _window_stride; // In pixels
-
 	int _num_bins;
-	cv::Size _grid_size; // In number of cells
+	cv::Size _grid_size; // In number of blocks
 	cv::Size _block_size; // In number of cells
 	cv::Size _block_stride; // In number of cells
 };

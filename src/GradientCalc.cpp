@@ -33,6 +33,11 @@ GHOG_LIB_STATUS GradientCalc::calc_gradient(cv::Mat input_img)
 	return GHOG_LIB_STATUS_OK;
 }
 
+void GradientCalc::set_callback(ImageCallback* callback)
+{
+	_callback = callback;
+}
+
 void GradientCalc::calc_gradient_impl(cv::Mat input_img)
 {
 	cv::Mat ret;

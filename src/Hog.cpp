@@ -20,6 +20,8 @@ Hog::Hog(HogCallback* callback,
 	_settings(settings_file)
 {
 	_classifier = NULL;
+
+
 	_num_bins = 0;
 	_grid_size = cv::Size(0, 0);
 	_block_size = cv::Size(0, 0);
