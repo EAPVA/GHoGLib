@@ -18,11 +18,9 @@ namespace ghog
 namespace lib
 {
 
-ImageUtils::ImageUtils(ImageCallback* callback) :
-	_callback(callback)
+ImageUtils::ImageUtils()
 {
 	// TODO Auto-generated constructor stub
-
 }
 
 ImageUtils::~ImageUtils()
@@ -31,18 +29,21 @@ ImageUtils::~ImageUtils()
 }
 
 GHOG_LIB_STATUS ImageUtils::resize(cv::Mat image,
-	cv::Size new_size)
+	cv::Size new_size,
+	ImageCallback* callback)
 {
-	boost::thread(&ImageUtils::resize_impl, this, image, new_size).detach();
+	boost::thread(&ImageUtils::resize_impl, this, image, new_size, callback)
+		.detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
 void ImageUtils::resize_impl(cv::Mat image,
-	cv::Size new_size)
+	cv::Size new_size,
+	ImageCallback* callback)
 {
 	cv::Mat ret;
 	cv::resize(image, ret, new_size, 0, 0, CV_INTER_AREA);
-	_callback->image_processed(image, ret);
+	callback->image_processed(image, ret);
 }
 
 } /* namespace lib */

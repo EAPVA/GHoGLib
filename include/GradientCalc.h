@@ -21,17 +21,16 @@ namespace lib
 class GradientCalc
 {
 public:
-	GradientCalc(ImageCallback* callback);
+	GradientCalc();
 	~GradientCalc();
 
-	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img);
-
-	void set_callback(ImageCallback* callback);
+	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
+		ImageCallback* callback);
 
 protected:
-	ImageCallback* _callback;
 
-	void calc_gradient_impl(cv::Mat input_img);
+	void calc_gradient_impl(cv::Mat input_img,
+		ImageCallback* callback);
 };
 
 } /* namespace lib */

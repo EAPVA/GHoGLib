@@ -35,30 +35,33 @@ public:
 class Hog
 {
 public:
-	Hog(HogCallback* callback,
-		std::string settings_file);
+	Hog(std::string settings_file);
 	virtual ~Hog();
 
-	GHOG_LIB_STATUS classify(cv::Mat img);
+	GHOG_LIB_STATUS classify(cv::Mat img,
+		HogCallback* callback);
 
 	GHOG_LIB_STATUS locate(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
-		cv::Size window_stride);
+		cv::Size window_stride,
+		HogCallback* callback);
 
 	void set_classifier(IClassifier* classifier);
-	void set_callback(HogCallback* callback);
 
 protected:
-	void classify_impl(cv::Mat img);
+	void classify_impl(cv::Mat img,
+		HogCallback* callback);
 	void locate_impl(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
-		cv::Size window_stride);
+		cv::Size window_stride,
+		HogCallback* callback);
 
 	IClassifier* _classifier;
-	HogCallback* _callback;
 	Settings _settings;
+
+	cv::Size _img_resize;
 
 	int _num_bins;
 	cv::Size _grid_size; // In number of blocks

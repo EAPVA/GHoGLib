@@ -14,12 +14,14 @@ namespace ghog
 namespace lib
 {
 
-Hog::Hog(HogCallback* callback,
-	std::string settings_file) :
-	_callback(callback),
+Hog::Hog(std::string settings_file) :
 	_settings(settings_file)
 {
 	_classifier = NULL;
+
+	_img_resize.width = _settings.load_int("Hog",
+		"CLASSIFICATION_IMAGE_HEIGHT");
+	_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
 
 	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
 	_grid_size.width = _settings.load_int(std::string("Descriptor"),
@@ -34,25 +36,29 @@ Hog::Hog(HogCallback* callback,
 		"BLOCK_STRIDE_COLS");
 	_block_stride.height = _settings.load_int(std::string("Descriptor"),
 		"BLOCK_STRIDE_ROWS");
+
 }
 
-GHOG_LIB_STATUS Hog::classify(cv::Mat img)
+GHOG_LIB_STATUS Hog::classify(cv::Mat img,
+	HogCallback* callback)
 {
-	boost::thread(&Hog::classify_impl, this, img).detach();
+	boost::thread(&Hog::classify_impl, this, img, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS Hog::locate(cv::Mat img,
 	cv::Rect roi,
 	cv::Size window_size,
-	cv::Size window_stride)
+	cv::Size window_stride,
+	HogCallback* callback)
 {
-	boost::thread(&Hog::locate_impl, this, img, roi, window_size, window_stride)
-		.detach();
+	boost::thread(&Hog::locate_impl, this, img, roi, window_size, window_stride,
+		callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-void Hog::classify_impl(cv::Mat img)
+void Hog::classify_impl(cv::Mat img,
+	HogCallback* callback)
 {
 
 }
@@ -60,20 +66,16 @@ void Hog::classify_impl(cv::Mat img)
 void Hog::locate_impl(cv::Mat img,
 	cv::Rect roi,
 	cv::Size window_size,
-	cv::Size window_stride)
+	cv::Size window_stride,
+	HogCallback* callback)
 {
 	std::vector< cv::Rect > ret;
-	_callback->objects_detected(img, ret);
+	callback->objects_detected(img, ret);
 }
 
 void Hog::set_classifier(IClassifier* classifier)
 {
 	_classifier = classifier;
-}
-
-void Hog::set_callback(HogCallback* callback)
-{
-	_callback = callback;
 }
 
 Hog::~Hog()

@@ -16,8 +16,7 @@ namespace ghog
 namespace lib
 {
 
-GradientCalc::GradientCalc(ImageCallback* callback) :
-	_callback(callback)
+GradientCalc::GradientCalc()
 {
 
 }
@@ -27,18 +26,16 @@ GradientCalc::~GradientCalc()
 
 }
 
-GHOG_LIB_STATUS GradientCalc::calc_gradient(cv::Mat input_img)
+GHOG_LIB_STATUS GradientCalc::calc_gradient(cv::Mat input_img,
+	ImageCallback* callback)
 {
-	boost::thread(&GradientCalc::calc_gradient_impl, this, input_img).detach();
+	boost::thread(&GradientCalc::calc_gradient_impl, this, input_img, callback)
+		.detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-void GradientCalc::set_callback(ImageCallback* callback)
-{
-	_callback = callback;
-}
-
-void GradientCalc::calc_gradient_impl(cv::Mat input_img)
+void GradientCalc::calc_gradient_impl(cv::Mat input_img,
+	ImageCallback* callback)
 {
 	cv::Mat ret;
 	cv::Mat grad[2];
@@ -46,7 +43,7 @@ void GradientCalc::calc_gradient_impl(cv::Mat input_img)
 	cv::Sobel(input_img, grad[1], 1, 0, 1, 1);
 	cv::cartToPolar(grad[0], grad[1], grad[0], grad[1], true);
 	cv::merge(grad, 2, ret);
-	_callback->image_processed(input_img, ret);
+	callback->image_processed(input_img, ret);
 }
 
 } /* namespace lib */

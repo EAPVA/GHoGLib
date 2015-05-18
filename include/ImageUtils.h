@@ -19,17 +19,17 @@ namespace lib
 class ImageUtils
 {
 public:
-	ImageUtils(ImageCallback* callback);
+	ImageUtils();
 	virtual ~ImageUtils();
 
 	GHOG_LIB_STATUS resize(cv::Mat image,
-		cv::Size new_size);
+		cv::Size new_size,
+		ImageCallback* callback);
 
 protected:
 	void resize_impl(cv::Mat image,
-		cv::Size new_size);
-
-	ImageCallback* _callback;
+		cv::Size new_size,
+		ImageCallback* callback);
 };
 
 } /* namespace lib */
