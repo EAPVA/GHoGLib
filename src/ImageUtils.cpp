@@ -42,7 +42,7 @@ void ImageUtils::resize_impl(cv::Mat image,
 {
 	cv::Mat ret;
 	cv::resize(image, ret, new_size, 0, 0, CV_INTER_AREA);
-	_callback->image_processed(ret);
+	_callback->image_processed(image, ret);
 }
 
 } /* namespace lib */

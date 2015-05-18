@@ -34,24 +34,21 @@ Settings::~Settings()
 //		attribute.c_str());
 //}
 
-template < >
-int Settings::load(std::string module,
+int Settings::load_int(std::string module,
 	std::string attribute)
 {
 	return _file.FirstChildElement(module.c_str())->IntAttribute(
 		attribute.c_str());
 }
 
-template < >
-float Settings::load(std::string module,
+float Settings::load_float(std::string module,
 	std::string attribute)
 {
 	return _file.FirstChildElement(module.c_str())->FloatAttribute(
 		attribute.c_str());
 }
 
-template < >
-std::string Settings::load(std::string module,
+std::string Settings::load_str(std::string module,
 	std::string attribute)
 {
 	return _file.FirstChildElement(module.c_str())->Attribute(attribute.c_str());
@@ -98,6 +95,10 @@ void Settings::save_file()
 void Settings::save_default_settings(std::string filename)
 {
 	tinyxml2::XMLDocument doc;
+	tinyxml2::XMLElement* hog_module = doc.NewElement("Hog");
+	hog_module->SetAttribute("CLASSIFICATION_IMAGE_HEIGHT", 32);
+	hog_module->SetAttribute("CLASSIFICATION_IMAGE_WIDTH", 32);
+	doc.InsertEndChild(hog_module);
 	tinyxml2::XMLElement* descriptor_module = doc.NewElement("Descriptor");
 	descriptor_module->SetAttribute("GRID_SIZE_COLS", 1);
 	descriptor_module->SetAttribute("GRID_SIZE_ROWS", 3);

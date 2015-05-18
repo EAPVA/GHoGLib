@@ -50,6 +50,7 @@ public:
 	void set_callback(HogCallback* callback);
 
 protected:
+	void classify_impl(cv::Mat img);
 	void locate_impl(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,

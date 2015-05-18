@@ -21,11 +21,25 @@ Hog::Hog(HogCallback* callback,
 {
 	_classifier = NULL;
 
+	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
+	_grid_size.width = _settings.load_int(std::string("Descriptor"),
+		"GRID_SIZE_COLS");
+	_grid_size.height = _settings.load_int(std::string("Descriptor"),
+		"GRID_SIZE_ROWS");
+	_block_size.width = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_COLS");
+	_block_size.height = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_ROWS");
+	_block_stride.width = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_STRIDE_COLS");
+	_block_stride.height = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_STRIDE_ROWS");
+}
 
-	_num_bins = 0;
-	_grid_size = cv::Size(0, 0);
-	_block_size = cv::Size(0, 0);
-	_block_stride = cv::Size(0, 0);
+GHOG_LIB_STATUS Hog::classify(cv::Mat img)
+{
+	boost::thread(&Hog::classify_impl, this, img).detach();
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS Hog::locate(cv::Mat img,
@@ -38,13 +52,18 @@ GHOG_LIB_STATUS Hog::locate(cv::Mat img,
 	return GHOG_LIB_STATUS_OK;
 }
 
+void Hog::classify_impl(cv::Mat img)
+{
+
+}
+
 void Hog::locate_impl(cv::Mat img,
 	cv::Rect roi,
 	cv::Size window_size,
 	cv::Size window_stride)
 {
 	std::vector< cv::Rect > ret;
-	_callback->objects_detected(ret);
+	_callback->objects_detected(img, ret);
 }
 
 void Hog::set_classifier(IClassifier* classifier)

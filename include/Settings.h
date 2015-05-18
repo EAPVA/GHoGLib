@@ -23,8 +23,11 @@ public:
 	Settings(std::string filename);
 	virtual ~Settings();
 
-	template < typename T >
-	T load(std::string module,
+	int load_int(std::string module,
+		std::string attribute);
+	float load_float(std::string module,
+		std::string attribute);
+	std::string load_str(std::string module,
 		std::string attribute);
 	template < typename T >
 	void save(std::string module,
