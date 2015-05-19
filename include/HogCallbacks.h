@@ -25,6 +25,16 @@ public:
 		cv::Mat processed) = 0;
 };
 
+class DescriptorCallback
+{
+public:
+	virtual ~DescriptorCallback()
+	{
+	}
+	virtual void descriptor_obtained(cv::Mat img,
+		cv::Mat descriptor) = 0;
+};
+
 class ClassifyCallback
 {
 public:

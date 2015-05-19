@@ -37,6 +37,11 @@ public:
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		ImageCallback* callback);
 
+	GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
+		cv::Size block_size,
+		int num_bins,
+		DescriptorCallback* callback);
+
 	GHOG_LIB_STATUS classify(cv::Mat img,
 		ClassifyCallback* callback);
 
@@ -49,21 +54,42 @@ public:
 	void set_classifier(IClassifier* classifier);
 
 protected:
-	void resize_impl(cv::Mat image,
-			cv::Size new_size,
-			ImageCallback* callback);
+	void resize_async(cv::Mat image,
+		cv::Size new_size,
+		ImageCallback* callback);
 
-	void calc_gradient_impl(cv::Mat input_img,
-			ImageCallback* callback);
+	void calc_gradient_async(cv::Mat input_img,
+		ImageCallback* callback);
 
-	void classify_impl(cv::Mat img,
+	void create_descriptor_async(cv::Mat gradients,
+		cv::Size block_size,
+		int num_bins,
+		DescriptorCallback* callback);
+
+	void classify_async(cv::Mat img,
 		ClassifyCallback* callback);
 
-	void locate_impl(cv::Mat img,
+	void locate_async(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride,
 		LocateCallback* callback);
+
+	void resize_impl(cv::Mat image,
+		cv::Size new_size,
+		cv::Mat& resized);
+
+	void calc_gradient_impl(cv::Mat input_img,
+		cv::Mat& gradients);
+
+	void create_descriptor_impl(cv::Mat gradients,
+		cv::Size block_size,
+		int num_bins,
+		cv::Mat& descriptor);
+
+	void calc_histogram(cv::Mat gradients,
+		int num_bins,
+		cv::Mat histogram);
 
 	IClassifier* _classifier;
 	Settings _settings;
