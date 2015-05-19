@@ -100,12 +100,8 @@ void Settings::save_default_settings(std::string filename)
 	hog_module->SetAttribute("CLASSIFICATION_IMAGE_WIDTH", 32);
 	doc.InsertEndChild(hog_module);
 	tinyxml2::XMLElement* descriptor_module = doc.NewElement("Descriptor");
-	descriptor_module->SetAttribute("GRID_SIZE_COLS", 1);
-	descriptor_module->SetAttribute("GRID_SIZE_ROWS", 3);
 	descriptor_module->SetAttribute("BLOCK_SIZE_COLS", 1);
-	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS", 1);
-	descriptor_module->SetAttribute("BLOCK_STRIDE_COLS", 1);
-	descriptor_module->SetAttribute("BLOCK_STRIDE_ROWS", 1);
+	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS", 3);
 	descriptor_module->SetAttribute("NUMBER_OF_BINS", 9);
 	doc.InsertEndChild(descriptor_module);
 	tinyxml2::XMLElement* classifier_module = doc.NewElement("Classifier");

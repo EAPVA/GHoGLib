@@ -11,8 +11,12 @@
 #include <vector>
 #include <string>
 
-#include <include/MultilayerPerceptron.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <include/GHogLibConstants.inc>
+#include <include/HogCallbacks.h>
+#include <include/MultilayerPerceptron.h>
 #include <include/Settings.h>
 
 namespace ghog
@@ -20,53 +24,53 @@ namespace ghog
 namespace lib
 {
 
-class HogCallback
-{
-public:
-	virtual ~HogCallback()
-	{
-	}
-	virtual void objects_detected(cv::Mat img,
-		std::vector< cv::Rect > found_objects) = 0;
-	virtual void classification_result(cv::Mat img,
-		bool positive) = 0;
-};
-
 class Hog
 {
 public:
 	Hog(std::string settings_file);
 	virtual ~Hog();
 
+	GHOG_LIB_STATUS resize(cv::Mat image,
+		cv::Size new_size,
+		ImageCallback* callback);
+
+	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
+		ImageCallback* callback);
+
 	GHOG_LIB_STATUS classify(cv::Mat img,
-		HogCallback* callback);
+		ClassifyCallback* callback);
 
 	GHOG_LIB_STATUS locate(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride,
-		HogCallback* callback);
+		LocateCallback* callback);
 
 	void set_classifier(IClassifier* classifier);
 
 protected:
+	void resize_impl(cv::Mat image,
+			cv::Size new_size,
+			ImageCallback* callback);
+
+	void calc_gradient_impl(cv::Mat input_img,
+			ImageCallback* callback);
+
 	void classify_impl(cv::Mat img,
-		HogCallback* callback);
+		ClassifyCallback* callback);
+
 	void locate_impl(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride,
-		HogCallback* callback);
+		LocateCallback* callback);
 
 	IClassifier* _classifier;
 	Settings _settings;
 
 	cv::Size _img_resize;
-
 	int _num_bins;
-	cv::Size _grid_size; // In number of blocks
 	cv::Size _block_size; // In number of cells
-	cv::Size _block_stride; // In number of cells
 };
 
 } /* namespace lib */

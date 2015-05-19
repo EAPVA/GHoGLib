@@ -8,6 +8,8 @@
 #ifndef GHOGDESCRIPTOR_H_
 #define GHOGDESCRIPTOR_H_
 
+#include <opencv2/core/core.hpp>
+
 #include <include/Histogram.h>
 
 namespace ghog
@@ -25,6 +27,7 @@ public:
 	virtual ~GHogDescriptor();
 
 	Histogram get_histogram(int num_hist);
+	cv::Mat get_values();
 
 protected:
 	std::vector< Histogram > _cell;
