@@ -32,9 +32,13 @@ public:
 	{
 	}
 
-	virtual void train(cv::Mat train_data,
+	virtual void train_async(cv::Mat train_data,
 		cv::Mat expected_outputs) = 0;
-	virtual void classify(cv::Mat input) = 0;
+	virtual void classify_async(cv::Mat input) = 0;
+
+	virtual cv::Mat train(cv::Mat train_data,
+		cv::Mat expected_outputs) = 0;
+	virtual cv::Mat classify(cv::Mat input) = 0;
 
 	virtual void load(std::string filename) = 0;
 	virtual void save(std::string filename) = 0;

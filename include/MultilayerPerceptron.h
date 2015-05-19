@@ -31,9 +31,9 @@ public:
 		bool random_weights = true);
 	virtual ~MultilayerPerceptron();
 
-	void train(cv::Mat inputs,
+	void train_async(cv::Mat inputs,
 		cv::Mat expected_outputs);
-	virtual void classify(cv::Mat input);
+	virtual void classify_async(cv::Mat input);
 
 	void load(std::string filename);
 	void save(std::string filename);

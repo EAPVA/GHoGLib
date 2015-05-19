@@ -67,7 +67,7 @@ MultilayerPerceptron::~MultilayerPerceptron()
 	// TODO Auto-generated destructor stub
 }
 
-void MultilayerPerceptron::train(cv::Mat inputs,
+void MultilayerPerceptron::train_async(cv::Mat inputs,
 	cv::Mat expected_outputs)
 {
 	cv::Mat output;
@@ -79,7 +79,7 @@ void MultilayerPerceptron::train(cv::Mat inputs,
 	}
 }
 
-void MultilayerPerceptron::classify(cv::Mat input)
+void MultilayerPerceptron::classify_async(cv::Mat input)
 {
 
 }
@@ -204,7 +204,7 @@ void MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
 {
 	for(int i = 0; i < num_times; ++i)
 	{
-		train(inputs, expected_outputs);
+		train_async(inputs, expected_outputs);
 	}
 }
 

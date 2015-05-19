@@ -113,10 +113,18 @@ void Hog::create_descriptor_async(cv::Mat gradients,
 void Hog::classify_async(cv::Mat img,
 	ClassifyCallback* callback)
 {
-	cv::Mat aux;
-	aux.data;
-	resize_impl(img, _img_resize, aux);
-	calc_gradient_impl(aux, aux);
+	bool ret = false;
+	cv::Mat gradients;
+	resize_impl(img, _img_resize, gradients);
+	calc_gradient_impl(gradients, gradients);
+	cv::Mat descriptor;
+	create_descriptor_impl(gradients, _block_size, _num_bins, descriptor);
+	cv::Mat output = _classifier->classify(descriptor);
+	if(output.at< float >(0) > 0)
+	{
+		ret = true;
+	}
+	callback->classification_result(img, ret);
 }
 
 void Hog::locate_async(cv::Mat img,
