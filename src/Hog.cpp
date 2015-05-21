@@ -226,7 +226,7 @@ void Hog::calc_histogram(cv::Mat gradients,
 				right_bin = (left_bin + 1) % num_bins;
 
 				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
-				if(delta > 1.0)
+				if(right_bin == 0)
 					delta -= num_bins;
 
 				histogram.at< float >(left_bin) += (0.5 - delta)
