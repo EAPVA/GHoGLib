@@ -12,9 +12,6 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
-
 #include <include/IClassifier.h>
 
 namespace ghog
@@ -26,33 +23,42 @@ namespace lib
 class MultilayerPerceptron: public IClassifier
 {
 public:
+	MultilayerPerceptron(std::string filename);
 	MultilayerPerceptron(cv::Mat layers,
 		float learning_rate = 0.2f,
+		float target_error = 1e-6f,
+		int max_iterations = 1000,
 		bool random_weights = true);
 	virtual ~MultilayerPerceptron();
 
-	void train_async(cv::Mat inputs,
-		cv::Mat expected_outputs);
-	virtual void classify_async(cv::Mat input);
+	GHOG_LIB_STATUS train_async(cv::Mat train_data,
+		cv::Mat expected_outputs,
+		TrainingCallback* callback) = 0;
+	GHOG_LIB_STATUS classify_async(cv::Mat input,
+		ClassificationCallback* callback) = 0;
 
-	void load(std::string filename);
-	void save(std::string filename);
+	GHOG_LIB_STATUS train_sync(cv::Mat train_data,
+		cv::Mat expected_outputs) = 0;
+	cv::Mat classify_sync(cv::Mat input) = 0;
 
-	void set_parameter(std::string parameter,
-		std::string value);
-	std::string get_parameter(std::string parameter);
+	GHOG_LIB_STATUS load(std::string filename);
+	GHOG_LIB_STATUS save(std::string filename);
+
+	virtual GHOG_LIB_STATUS set_parameter(std::string parameter,
+		std::string value) = 0;
+	virtual std::string get_parameter(std::string parameter) = 0;
+
+protected:
+	void train_async_impl(cv::Mat train_data,
+		cv::Mat expected_outputs,
+		TrainingCallback* callback) = 0;
+	void classify_async_impl(cv::Mat input,
+		ClassificationCallback* callback) = 0;
 
 	cv::Mat feed_forward(cv::Mat input);
 	void backpropagation(cv::Mat expected,
 		cv::Mat actual);
-
 	void update_weights();
-
-	void train_multiple_times(cv::Mat inputs,
-		cv::Mat expected_outputs,
-		int num_times);
-
-protected:
 
 	float activation(float sum);
 	float activation_derivative(float sum);
@@ -66,11 +72,12 @@ protected:
 	cv::Mat _error_signals;
 	cv::Mat _last_gradients;
 
+	//For training
 	float _learning_rate;
+	float _target_error;
+	int _max_iterations;
 
-	boost::random::mt19937 _random_gen;
-
-	int _max_layer_size;
+	MLPSettings _settings;
 };
 
 } /* namespace lib */

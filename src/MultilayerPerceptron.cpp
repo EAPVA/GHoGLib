@@ -7,18 +7,36 @@
 
 #include <include/MultilayerPerceptron.h>
 
-namespace ghog {
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
-namespace lib {
+#include <boost/thread.hpp>
+
+namespace ghog
+{
+
+namespace lib
+{
+
+MultilayerPerceptron::MultilayerPerceptron(std::string filename)
+{
+	this->load(filename);
+}
 
 MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
 	float learning_rate,
+	float target_error,
+	int max_iterations,
 	bool random_weights) :
 	_layers(layers),
-	_learning_rate(learning_rate)
+	_learning_rate(learning_rate),
+	_target_error(target_error),
+	_max_iterations(max_iterations)
 {
+	boost::random::mt19937 _random_gen;
+
 	int num_layers = _layers.cols;
-	_max_layer_size = 0;
+	int _max_layer_size = 0;
 	int* layer_ptr = _layers.ptr< int >(0);
 	for(int l = 0; l < num_layers; ++l)
 	{
@@ -67,37 +85,82 @@ MultilayerPerceptron::~MultilayerPerceptron()
 	// TODO Auto-generated destructor stub
 }
 
-void MultilayerPerceptron::train_async(cv::Mat inputs,
+GHOG_LIB_STATUS MultilayerPerceptron::train_async(cv::Mat train_data,
+	cv::Mat expected_outputs,
+	TrainingCallback* callback)
+{
+	boost::thread(&MultilayerPerceptron::train_async_impl, this, train_data,
+		expected_outputs, callback).detach();
+	return GHOG_LIB_STATUS_OK;
+}
+
+GHOG_LIB_STATUS MultilayerPerceptron::classify_async(cv::Mat input,
+	ClassificationCallback* callback)
+{
+	boost::thread(&MultilayerPerceptron::classify_async_impl, this, input,
+		callback).detach();
+	return GHOG_LIB_STATUS_OK;
+}
+
+GHOG_LIB_STATUS MultilayerPerceptron::train_sync(cv::Mat train_data,
 	cv::Mat expected_outputs)
 {
 	cv::Mat output;
-	for(int i = 0; i < inputs.rows; ++i)
+	for(int i = 0; i < train_data.rows; ++i)
 	{
-		output = feed_forward(inputs.row(i));
+		output = feed_forward(train_data.row(i));
 		backpropagation(expected_outputs.row(i), output);
 		update_weights();
 	}
+	return GHOG_LIB_STATUS_OK;
 }
 
-void MultilayerPerceptron::classify_async(cv::Mat input)
+cv::Mat MultilayerPerceptron::classify_sync(cv::Mat input)
 {
-
+	return cv::Mat();
 }
 
-void MultilayerPerceptron::load(std::string filename)
+GHOG_LIB_STATUS MultilayerPerceptron::load(std::string filename)
 {
-
+	_settings(filename);
+	_learning_rate = _settings.load_float("Training", "LEARNING_RATE");
+	_target_error = _settings.load_float("Training", "TARGET_ERROR");
+	_max_iterations = _settings.load_float("Training", "MAX_ITERATIONS");
+	_layers = _settings.load_layers();
+	_weights = _settings.load_weights();
+	return GHOG_LIB_STATUS_OK;
 }
 
-void MultilayerPerceptron::save(std::string filename)
+GHOG_LIB_STATUS MultilayerPerceptron::save(std::string filename)
 {
-
+	_settings(filename);
+	_settings.save("Training", "LEARNING_RATE", _learning_rate);
+	_settings.save("Training", "TARGET_ERROR", _target_error);
+	_settings.save("Training", "MAX_ITERATIONS", _max_iterations);
+	_settings.save_layers(_layers);
+	_settings.save_weights(_weights);
+	return GHOG_LIB_STATUS_OK;
 }
 
-void MultilayerPerceptron::set_parameter(std::string parameter,
+GHOG_LIB_STATUS MultilayerPerceptron::set_parameter(std::string parameter,
 	std::string value)
 {
+	return GHOG_LIB_STATUS_OK;
+}
 
+void MultilayerPerceptron::train_async_impl(cv::Mat train_data,
+	cv::Mat expected_outputs,
+	TrainingCallback* callback)
+{
+	train_sync(train_data, expected_outputs);
+	callback->finished(train_data);
+}
+
+void MultilayerPerceptron::classify_async_impl(cv::Mat input,
+	ClassificationCallback* callback)
+{
+	cv::Mat output = classify_sync(input);
+	callback->result(input, output);
 }
 
 std::string MultilayerPerceptron::get_parameter(std::string parameter)
@@ -195,16 +258,6 @@ void MultilayerPerceptron::update_weights()
 					* _learning_rate;
 			}
 		}
-	}
-}
-
-void MultilayerPerceptron::train_multiple_times(cv::Mat inputs,
-	cv::Mat expected_outputs,
-	int num_times)
-{
-	for(int i = 0; i < num_times; ++i)
-	{
-		train_async(inputs, expected_outputs);
 	}
 }
 

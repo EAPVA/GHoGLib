@@ -51,7 +51,16 @@ public:
 		cv::Size window_stride,
 		LocateCallback* callback);
 
+	void load_settings(std::string filename);
+
 	void set_classifier(IClassifier* classifier);
+
+	GHOG_LIB_STATUS set_img_resize();
+	cv::Size get_img_resize();
+	GHOG_LIB_STATUS set_num_bins();
+	int get_num_bins();
+	GHOG_LIB_STATUS set_block_size();
+	cv::Size get_block_size();
 
 protected:
 	void resize_async(cv::Mat image,
@@ -91,8 +100,9 @@ protected:
 		int num_bins,
 		cv::Mat histogram);
 
-	IClassifier* _classifier;
 	Settings _settings;
+
+	IClassifier* _classifier;
 
 	cv::Size _img_resize;
 	int _num_bins;

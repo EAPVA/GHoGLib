@@ -12,17 +12,24 @@
 
 #include <opencv2/core/core.hpp>
 
+#include <include/GHogLibConstants.inc>
+
 namespace ghog
 {
 namespace lib
 {
 
-class ClassifierCallback
+class ClassificationCallback
 {
-	virtual ~ClassifierCallback() = 0;
-	virtual void classification_result(cv::Mat inputs,
+	virtual ~ClassificationCallback() = 0;
+	virtual void result(cv::Mat inputs,
 		cv::Mat output) = 0;
-	virtual void training_finished(cv::Mat train_data) = 0;
+};
+
+class TrainingCallback
+{
+	virtual ~TrainingCallback() = 0;
+	virtual void finished(cv::Mat train_data) = 0;
 };
 
 class IClassifier
@@ -32,23 +39,22 @@ public:
 	{
 	}
 
-	virtual void train_async(cv::Mat train_data,
+	virtual GHOG_LIB_STATUS train_async(cv::Mat train_data,
+		cv::Mat expected_outputs,
+		TrainingCallback* callback) = 0;
+	virtual GHOG_LIB_STATUS classify_async(cv::Mat input,
+		ClassificationCallback* callback) = 0;
+
+	virtual GHOG_LIB_STATUS train_sync(cv::Mat train_data,
 		cv::Mat expected_outputs) = 0;
-	virtual void classify_async(cv::Mat input) = 0;
+	virtual cv::Mat classify_sync(cv::Mat input) = 0;
 
-	virtual cv::Mat train(cv::Mat train_data,
-		cv::Mat expected_outputs) = 0;
-	virtual cv::Mat classify(cv::Mat input) = 0;
+	virtual GHOG_LIB_STATUS load(std::string filename) = 0;
+	virtual GHOG_LIB_STATUS save(std::string filename) = 0;
 
-	virtual void load(std::string filename) = 0;
-	virtual void save(std::string filename) = 0;
-
-	virtual void set_parameter(std::string parameter,
+	virtual GHOG_LIB_STATUS set_parameter(std::string parameter,
 		std::string value) = 0;
 	virtual std::string get_parameter(std::string parameter) = 0;
-
-protected:
-	ClassifierCallback* _callback;
 };
 
 } /* namespace lib */

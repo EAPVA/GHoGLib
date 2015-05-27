@@ -26,14 +26,6 @@ Settings::~Settings()
 	// TODO Auto-generated destructor stub
 }
 
-//template < typename T >
-//T Settings::load(std::string module,
-//	std::string attribute)
-//{
-//	return _file.FirstChildElement(module.c_str())->FindAttribute(
-//		attribute.c_str());
-//}
-
 int Settings::load_int(std::string module,
 	std::string attribute)
 {
@@ -63,29 +55,17 @@ void Settings::save(std::string module,
 		value);
 }
 
-//template < >
-//void Settings::save(std::string module,
-//	std::string attribute,
-//	int value)
-//{
-//
-//}
-//
-//template < >
-//void Settings::save(std::string module,
-//	std::string attribute,
-//	float value)
-//{
-//
-//}
-//
-//template < >
-//void Settings::save(std::string module,
-//	std::string attribute,
-//	double value)
-//{
-//
-//}
+void Settings::load_file(std::string filename)
+{
+	if(_file.LoadFile(_filename.c_str()) != tinyxml2::XML_NO_ERROR)
+	{
+		_filename = filename;
+	}
+	else
+	{
+		_file.LoadFile(_filename.c_str());
+	}
+}
 
 void Settings::save_file()
 {
