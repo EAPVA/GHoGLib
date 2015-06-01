@@ -21,6 +21,7 @@ namespace lib
 
 class ClassificationCallback
 {
+public:
 	virtual ~ClassificationCallback() = 0;
 	virtual void result(cv::Mat inputs,
 		cv::Mat output) = 0;
@@ -28,6 +29,7 @@ class ClassificationCallback
 
 class TrainingCallback
 {
+public:
 	virtual ~TrainingCallback() = 0;
 	virtual void finished(cv::Mat train_data) = 0;
 };

@@ -41,7 +41,7 @@ protected:
 	tinyxml2::XMLDocument _file;
 	std::string _filename;
 
-	static void virtual save_default_settings(std::string filename);
+	void virtual save_default_settings(std::string filename);
 };
 
 } /* namespace lib */

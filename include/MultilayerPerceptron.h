@@ -13,6 +13,7 @@
 #include <opencv2/core/core.hpp>
 
 #include <include/IClassifier.h>
+#include <include/MLPSettings.h>
 
 namespace ghog
 {
@@ -51,9 +52,9 @@ public:
 protected:
 	void train_async_impl(cv::Mat train_data,
 		cv::Mat expected_outputs,
-		TrainingCallback* callback) = 0;
+		TrainingCallback* callback);
 	void classify_async_impl(cv::Mat input,
-		ClassificationCallback* callback) = 0;
+		ClassificationCallback* callback);
 
 	cv::Mat feed_forward(cv::Mat input);
 	void backpropagation(cv::Mat expected,

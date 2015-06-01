@@ -18,7 +18,8 @@ namespace ghog
 namespace lib
 {
 
-MultilayerPerceptron::MultilayerPerceptron(std::string filename)
+MultilayerPerceptron::MultilayerPerceptron(std::string filename) :
+	_settings(filename)
 {
 	this->load(filename);
 }
@@ -31,7 +32,8 @@ MultilayerPerceptron::MultilayerPerceptron(cv::Mat layers,
 	_layers(layers),
 	_learning_rate(learning_rate),
 	_target_error(target_error),
-	_max_iterations(max_iterations)
+	_max_iterations(max_iterations),
+	_settings("mlp.xml")
 {
 	boost::random::mt19937 _random_gen;
 
@@ -122,7 +124,7 @@ cv::Mat MultilayerPerceptron::classify_sync(cv::Mat input)
 
 GHOG_LIB_STATUS MultilayerPerceptron::load(std::string filename)
 {
-	_settings(filename);
+	_settings.load_file(filename);
 	_learning_rate = _settings.load_float("Training", "LEARNING_RATE");
 	_target_error = _settings.load_float("Training", "TARGET_ERROR");
 	_max_iterations = _settings.load_float("Training", "MAX_ITERATIONS");
@@ -133,12 +135,13 @@ GHOG_LIB_STATUS MultilayerPerceptron::load(std::string filename)
 
 GHOG_LIB_STATUS MultilayerPerceptron::save(std::string filename)
 {
-	_settings(filename);
+	_settings.load_file(filename);
 	_settings.save("Training", "LEARNING_RATE", _learning_rate);
 	_settings.save("Training", "TARGET_ERROR", _target_error);
 	_settings.save("Training", "MAX_ITERATIONS", _max_iterations);
 	_settings.save_layers(_layers);
 	_settings.save_weights(_weights);
+	_settings.save_file();
 	return GHOG_LIB_STATUS_OK;
 }
 

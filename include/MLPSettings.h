@@ -19,9 +19,10 @@ namespace ghog
 namespace lib
 {
 
-class MLPSettings: public ghog::lib::Settings
+class MLPSettings: public Settings
 {
 public:
+	MLPSettings(std::string filename);
 	virtual ~MLPSettings();
 
 	void save_layers(cv::Mat layers);
@@ -30,7 +31,7 @@ public:
 	std::vector< cv::Mat > load_weights();
 
 protected:
-	static void virtual save_default_settings(std::string filename);
+	void virtual save_default_settings(std::string filename);
 
 };
 

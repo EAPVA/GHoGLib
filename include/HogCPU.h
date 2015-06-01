@@ -11,24 +11,20 @@
 #include <vector>
 #include <string>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include <include/GHogLibConstants.inc>
-#include <include/HogCallbacks.h>
-#include <include/MultilayerPerceptron.h>
+#include <include/IClassifier.h>
 #include <include/Settings.h>
+#include <include/IHog.h>
 
 namespace ghog
 {
 namespace lib
 {
 
-class Hog
+class HogCPU : public IHog
 {
 public:
-	Hog(std::string settings_file);
-	virtual ~Hog();
+	HogCPU(std::string settings_file);
+	virtual ~HogCPU();
 
 	GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,
