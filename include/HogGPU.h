@@ -1,5 +1,5 @@
 /*
- * HogCPU.h
+ * HogGPU.h
  *
  *  Created on: May 12, 2015
  *      Author: marcelo
@@ -20,11 +20,11 @@ namespace ghog
 namespace lib
 {
 
-class HogCPU : public IHog
+class HogGPU : public IHog
 {
 public:
-	HogCPU(std::string settings_file);
-	virtual ~HogCPU();
+	HogGPU(std::string settings_file);
+	virtual ~HogGPU();
 
 	GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,
@@ -108,4 +108,4 @@ protected:
 } /* namespace lib */
 } /* namespace ghog */
 
-#endif /* HOGCPU_H_ */
+#endif /* HOGGPU_H_ */

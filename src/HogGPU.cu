@@ -1,22 +1,22 @@
 /*
- * HogCPU.cpp
+ * HogGPU.cpp
  *
  *  Created on: May 12, 2015
  *      Author: marcelo
  */
 
-#include <include/HogCPU.h>
+#include <include/HogGPU.h>
 
 #include <boost/thread.hpp>
 
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/gpu/gpu.hpp>
 
 namespace ghog
 {
 namespace lib
 {
 
-HogCPU::HogCPU(std::string settings_file) :
+HogGPU::HogGPU(std::string settings_file) :
 	_settings(settings_file)
 {
 	_classifier = NULL;
@@ -32,60 +32,61 @@ HogCPU::HogCPU(std::string settings_file) :
 		"BLOCK_SIZE_ROWS");
 }
 
-HogCPU::~HogCPU()
+HogGPU::~HogGPU()
 {
 // TODO Auto-generated destructor stub
 }
 
-GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
+GHOG_LIB_STATUS HogGPU::resize(cv::Mat image,
 	cv::Size new_size,
 	ImageCallback* callback)
 {
-	boost::thread(&HogCPU::resize_async, this, image, new_size, callback).detach();
+	boost::thread(&HogGPU::resize_async, this, image, new_size, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-GHOG_LIB_STATUS HogCPU::calc_gradient(cv::Mat input_img,
+GHOG_LIB_STATUS HogGPU::calc_gradient(cv::Mat input_img,
 	ImageCallback* callback)
 {
-	boost::thread(&HogCPU::calc_gradient_async, this, input_img, callback).detach();
+	boost::thread(&HogGPU::calc_gradient_async, this, input_img, callback)
+		.detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-GHOG_LIB_STATUS HogCPU::create_descriptor(cv::Mat gradients,
+GHOG_LIB_STATUS HogGPU::create_descriptor(cv::Mat gradients,
 	cv::Size block_size,
 	int num_bins,
 	DescriptorCallback* callback)
 {
-	boost::thread(&HogCPU::create_descriptor_async, this, gradients, block_size,
+	boost::thread(&HogGPU::create_descriptor_async, this, gradients, block_size,
 		num_bins, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-GHOG_LIB_STATUS HogCPU::classify(cv::Mat img,
+GHOG_LIB_STATUS HogGPU::classify(cv::Mat img,
 	ClassifyCallback* callback)
 {
-	boost::thread(&HogCPU::classify_async, this, img, callback).detach();
+	boost::thread(&HogGPU::classify_async, this, img, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-GHOG_LIB_STATUS HogCPU::locate(cv::Mat img,
+GHOG_LIB_STATUS HogGPU::locate(cv::Mat img,
 	cv::Rect roi,
 	cv::Size window_size,
 	cv::Size window_stride,
 	LocateCallback* callback)
 {
-	boost::thread(&HogCPU::locate_async, this, img, roi, window_size,
+	boost::thread(&HogGPU::locate_async, this, img, roi, window_size,
 		window_stride, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
-void HogCPU::set_classifier(IClassifier* classifier)
+void HogGPU::set_classifier(IClassifier* classifier)
 {
 	_classifier = classifier;
 }
 
-void HogCPU::resize_async(cv::Mat image,
+void HogGPU::resize_async(cv::Mat image,
 	cv::Size new_size,
 	ImageCallback* callback)
 {
@@ -94,7 +95,7 @@ void HogCPU::resize_async(cv::Mat image,
 	callback->image_processed(image, ret);
 }
 
-void HogCPU::calc_gradient_async(cv::Mat input_img,
+void HogGPU::calc_gradient_async(cv::Mat input_img,
 	ImageCallback* callback)
 {
 	cv::Mat ret;
@@ -102,7 +103,7 @@ void HogCPU::calc_gradient_async(cv::Mat input_img,
 	callback->image_processed(input_img, ret);
 }
 
-void HogCPU::create_descriptor_async(cv::Mat gradients,
+void HogGPU::create_descriptor_async(cv::Mat gradients,
 	cv::Size block_size,
 	int num_bins,
 	DescriptorCallback* callback)
@@ -112,7 +113,7 @@ void HogCPU::create_descriptor_async(cv::Mat gradients,
 	callback->descriptor_obtained(gradients, ret);
 }
 
-void HogCPU::classify_async(cv::Mat img,
+void HogGPU::classify_async(cv::Mat img,
 	ClassifyCallback* callback)
 {
 	bool ret = false;
@@ -129,7 +130,7 @@ void HogCPU::classify_async(cv::Mat img,
 	callback->classification_result(img, ret);
 }
 
-void HogCPU::locate_async(cv::Mat img,
+void HogGPU::locate_async(cv::Mat img,
 	cv::Rect roi,
 	cv::Size window_size,
 	cv::Size window_stride,
@@ -139,24 +140,36 @@ void HogCPU::locate_async(cv::Mat img,
 	callback->objects_located(img, ret);
 }
 
-void HogCPU::resize_impl(cv::Mat image,
+void HogGPU::resize_impl(cv::Mat image,
 	cv::Size new_size,
 	cv::Mat& resized)
 {
-	cv::resize(image, resized, new_size, 0, 0, CV_INTER_AREA);
+	cv::gpu::CudaMem input(image, cv::gpu::CudaMem::ALLOC_ZEROCOPY);
+	cv::gpu::CudaMem output(new_size, image.type(),
+		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
+	cv::gpu::GpuMat output_gpu = output.createGpuMatHeader();
+	cv::gpu::resize(input.createGpuMatHeader(), output_gpu, new_size, 0, 0,
+		CV_INTER_LINEAR);
+	resized = output.createMatHeader();
 }
 
-void HogCPU::calc_gradient_impl(cv::Mat input_img,
+void HogGPU::calc_gradient_impl(cv::Mat input_img,
 	cv::Mat& gradients)
 {
-	cv::Mat grad[2];
-	cv::Sobel(input_img, grad[0], 1, 1, 0, 1);
-	cv::Sobel(input_img, grad[1], 1, 0, 1, 1);
-	cv::cartToPolar(grad[0], grad[1], grad[0], grad[1], true);
-	cv::merge(grad, 2, gradients);
+	cv::gpu::GpuMat input = cv::gpu::CudaMem(input_img,
+		cv::gpu::CudaMem::ALLOC_ZEROCOPY).createGpuMatHeader();
+	cv::gpu::GpuMat grad[2];
+	cv::gpu::CudaMem output(input_img.rows, input_img.cols, CV_32FC2,
+		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
+	cv::gpu::GpuMat output_gpu = output.createGpuMatHeader();
+	cv::gpu::Sobel(input, grad[0], 1, 1, 0, 1);
+	cv::gpu::Sobel(input, grad[1], 1, 0, 1, 1);
+	cv::gpu::cartToPolar(grad[0], grad[1], grad[0], grad[1], true);
+	cv::gpu::merge(grad, 2, output_gpu);
+	gradients = output.createMatHeader();
 }
 
-void HogCPU::create_descriptor_impl(cv::Mat gradients,
+void HogGPU::create_descriptor_impl(cv::Mat gradients,
 	cv::Size block_size,
 	int num_bins,
 	cv::Mat& descriptor)
@@ -197,7 +210,7 @@ void HogCPU::create_descriptor_impl(cv::Mat gradients,
 	descriptor.reshape(1, 1);
 }
 
-void HogCPU::calc_histogram(cv::Mat gradients,
+void HogGPU::calc_histogram(cv::Mat gradients,
 	int num_bins,
 	cv::Mat histogram)
 {
