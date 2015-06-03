@@ -21,15 +21,7 @@ HogGPU::HogGPU(std::string settings_file) :
 {
 	_classifier = NULL;
 
-	_img_resize.width = _settings.load_int("Hog",
-		"CLASSIFICATION_IMAGE_HEIGHT");
-	_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
-
-	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
-	_block_size.width = _settings.load_int(std::string("Descriptor"),
-		"BLOCK_SIZE_COLS");
-	_block_size.height = _settings.load_int(std::string("Descriptor"),
-		"BLOCK_SIZE_ROWS");
+	load_settings(settings_file);
 }
 
 HogGPU::~HogGPU()
@@ -81,9 +73,55 @@ GHOG_LIB_STATUS HogGPU::locate(cv::Mat img,
 	return GHOG_LIB_STATUS_OK;
 }
 
+void HogGPU::load_settings(std::string filename)
+{
+	_img_resize.width = _settings.load_int("Hog",
+		"CLASSIFICATION_IMAGE_HEIGHT");
+	_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
+
+	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
+	_block_size.width = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_COLS");
+	_block_size.height = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_ROWS");
+}
+
 void HogGPU::set_classifier(IClassifier* classifier)
 {
 	_classifier = classifier;
+}
+
+GHOG_LIB_STATUS HogGPU::set_img_resize(cv::Size img_resize)
+{
+	_img_resize = img_resize;
+	return GHOG_LIB_STATUS_OK;
+}
+
+cv::Size HogGPU::get_img_resize()
+{
+	return _img_resize;
+}
+
+GHOG_LIB_STATUS HogGPU::set_num_bins(int num_bins)
+{
+	_num_bins = num_bins;
+	return GHOG_LIB_STATUS_OK;
+}
+
+int HogGPU::get_num_bins()
+{
+	return _num_bins;
+}
+
+GHOG_LIB_STATUS HogGPU::set_block_size(cv::Size block_size)
+{
+	_block_size = block_size;
+	return GHOG_LIB_STATUS_OK;
+}
+
+cv::Size HogGPU::get_block_size()
+{
+	return _block_size;
 }
 
 void HogGPU::resize_async(cv::Mat image,

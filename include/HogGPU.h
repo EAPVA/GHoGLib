@@ -20,7 +20,7 @@ namespace ghog
 namespace lib
 {
 
-class HogGPU : public IHog
+class HogGPU: public IHog
 {
 public:
 	HogGPU(std::string settings_file);
@@ -51,11 +51,11 @@ public:
 
 	void set_classifier(IClassifier* classifier);
 
-	GHOG_LIB_STATUS set_img_resize();
+	GHOG_LIB_STATUS set_img_resize(cv::Size img_resize);
 	cv::Size get_img_resize();
-	GHOG_LIB_STATUS set_num_bins();
+	GHOG_LIB_STATUS set_num_bins(int num_bins);
 	int get_num_bins();
-	GHOG_LIB_STATUS set_block_size();
+	GHOG_LIB_STATUS set_block_size(cv::Size block_size);
 	cv::Size get_block_size();
 
 protected:

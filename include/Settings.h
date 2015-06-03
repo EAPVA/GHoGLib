@@ -44,6 +44,15 @@ protected:
 	void virtual save_default_settings(std::string filename);
 };
 
+template< typename T >
+void Settings::save(std::string module,
+	std::string attribute,
+	T value)
+{
+	_file.FirstChildElement(module.c_str())->SetAttribute(attribute.c_str(),
+		value);
+}
+
 } /* namespace lib */
 } /* namespace ghog */
 #endif /* SETTINGS_H_ */

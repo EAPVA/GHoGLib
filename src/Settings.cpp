@@ -46,22 +46,12 @@ std::string Settings::load_str(std::string module,
 	return _file.FirstChildElement(module.c_str())->Attribute(attribute.c_str());
 }
 
-template < typename T >
-void Settings::save(std::string module,
-	std::string attribute,
-	T value)
-{
-	_file.FirstChildElement(module.c_str())->SetAttribute(attribute.c_str(),
-		value);
-}
-
 void Settings::load_file(std::string filename)
 {
 	if(_file.LoadFile(_filename.c_str()) != tinyxml2::XML_NO_ERROR)
 	{
 		_filename = filename;
-	}
-	else
+	} else
 	{
 		_file.LoadFile(_filename.c_str());
 	}

@@ -21,15 +21,7 @@ HogCPU::HogCPU(std::string settings_file) :
 {
 	_classifier = NULL;
 
-	_img_resize.width = _settings.load_int("Hog",
-		"CLASSIFICATION_IMAGE_HEIGHT");
-	_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
-
-	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
-	_block_size.width = _settings.load_int(std::string("Descriptor"),
-		"BLOCK_SIZE_COLS");
-	_block_size.height = _settings.load_int(std::string("Descriptor"),
-		"BLOCK_SIZE_ROWS");
+	load_settings(settings_file);
 }
 
 HogCPU::~HogCPU()
@@ -48,7 +40,8 @@ GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
 GHOG_LIB_STATUS HogCPU::calc_gradient(cv::Mat input_img,
 	ImageCallback* callback)
 {
-	boost::thread(&HogCPU::calc_gradient_async, this, input_img, callback).detach();
+	boost::thread(&HogCPU::calc_gradient_async, this, input_img, callback)
+		.detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
@@ -80,9 +73,55 @@ GHOG_LIB_STATUS HogCPU::locate(cv::Mat img,
 	return GHOG_LIB_STATUS_OK;
 }
 
+void HogCPU::load_settings(std::string filename)
+{
+	_img_resize.width = _settings.load_int("Hog",
+			"CLASSIFICATION_IMAGE_HEIGHT");
+		_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
+
+		_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
+		_block_size.width = _settings.load_int(std::string("Descriptor"),
+			"BLOCK_SIZE_COLS");
+		_block_size.height = _settings.load_int(std::string("Descriptor"),
+			"BLOCK_SIZE_ROWS");
+}
+
 void HogCPU::set_classifier(IClassifier* classifier)
 {
 	_classifier = classifier;
+}
+
+GHOG_LIB_STATUS HogCPU::set_img_resize(cv::Size img_resize)
+{
+	_img_resize = img_resize;
+	return GHOG_LIB_STATUS_OK;
+}
+
+cv::Size HogCPU::get_img_resize()
+{
+	return _img_resize;
+}
+
+GHOG_LIB_STATUS HogCPU::set_num_bins(int num_bins)
+{
+	_num_bins = num_bins;
+	return GHOG_LIB_STATUS_OK;
+}
+
+int HogCPU::get_num_bins()
+{
+	return _num_bins;
+}
+
+GHOG_LIB_STATUS HogCPU::set_block_size(cv::Size block_size)
+{
+	_block_size = block_size;
+	return GHOG_LIB_STATUS_OK;
+}
+
+cv::Size HogCPU::get_block_size()
+{
+	return _block_size;
 }
 
 void HogCPU::resize_async(cv::Mat image,

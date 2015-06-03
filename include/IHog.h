@@ -50,11 +50,11 @@ public:
 
 	virtual void set_classifier(IClassifier* classifier) = 0;
 
-	virtual GHOG_LIB_STATUS set_img_resize() = 0;
+	virtual GHOG_LIB_STATUS set_img_resize(cv::Size img_resize) = 0;
 	virtual cv::Size get_img_resize() = 0;
-	virtual GHOG_LIB_STATUS set_num_bins() = 0;
+	virtual GHOG_LIB_STATUS set_num_bins(int num_bins) = 0;
 	virtual int get_num_bins() = 0;
-	virtual GHOG_LIB_STATUS set_block_size() = 0;
+	virtual GHOG_LIB_STATUS set_block_size(cv::Size block_size) = 0;
 	virtual cv::Size get_block_size() = 0;
 };
 
