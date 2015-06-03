@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef HOGCPU_H_
-#define HOGCPU_H_
+#ifndef HOGGPU_H_
+#define HOGGPU_H_
 
 #include <vector>
 #include <string>
