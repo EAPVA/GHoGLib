@@ -209,8 +209,8 @@ void HogGPU::calc_gradient_impl(cv::Mat input_img,
 		cv::gpu::CudaMem::ALLOC_ZEROCOPY).createGpuMatHeader();
 	cv::gpu::GpuMat output_phase = cv::gpu::CudaMem(gradients_phase,
 		cv::gpu::CudaMem::ALLOC_ZEROCOPY).createGpuMatHeader();
-	cv::gpu::Sobel(input, output_magnitude, 1, 1, 0, 1);
-	cv::gpu::Sobel(input, output_phase, 1, 0, 1, 1);
+	cv::gpu::Sobel(input, output_magnitude, -1, 1, 0, 1);
+	cv::gpu::Sobel(input, output_phase, -1, 0, 1, 1);
 	cv::gpu::cartToPolar(output_magnitude, output_phase, output_magnitude,
 		output_phase, true);
 }

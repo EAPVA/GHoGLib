@@ -199,8 +199,8 @@ void HogCPU::calc_gradient_impl(cv::Mat input_img,
 	cv::Mat& gradients_magnitude,
 	cv::Mat& gradients_phase)
 {
-	cv::Sobel(input_img, gradients_magnitude, 1, 1, 0, 1);
-	cv::Sobel(input_img, gradients_phase, 1, 0, 1, 1);
+	cv::Sobel(input_img, gradients_magnitude, -1, 1, 0, 1);
+	cv::Sobel(input_img, gradients_phase, -1, 0, 1, 1);
 	cv::cartToPolar(gradients_magnitude, gradients_phase, gradients_magnitude,
 		gradients_phase, true);
 }
