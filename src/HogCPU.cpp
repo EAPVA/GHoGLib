@@ -42,10 +42,12 @@ GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
 }
 
 GHOG_LIB_STATUS HogCPU::calc_gradient(cv::Mat input_img,
-	ImageCallback* callback)
+	cv::Mat& gradients_magnitude,
+	cv::Mat& gradients_phase,
+	GradientCallback* callback)
 {
-	boost::thread(&HogCPU::calc_gradient_async, this, input_img, callback)
-		.detach();
+	boost::thread(&HogCPU::calc_gradient_async, this, input_img,
+		gradients_magnitude, gradients_phase, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
@@ -138,11 +140,13 @@ void HogCPU::resize_async(cv::Mat image,
 }
 
 void HogCPU::calc_gradient_async(cv::Mat input_img,
-	ImageCallback* callback)
+	cv::Mat& gradients_magnitude,
+	cv::Mat& gradients_phase,
+	GradientCallback* callback)
 {
-	cv::Mat ret;
-	calc_gradient_impl(input_img, ret);
-	callback->image_processed(input_img, ret);
+	calc_gradient_impl(input_img, gradients_magnitude, gradients_phase);
+	callback->gradients_obtained(input_img, gradients_magnitude,
+		gradients_phase);
 }
 
 void HogCPU::create_descriptor_async(cv::Mat gradients,
@@ -159,11 +163,13 @@ void HogCPU::classify_async(cv::Mat img,
 	ClassifyCallback* callback)
 {
 	bool ret = false;
-	cv::Mat gradients;
-	resize_impl(img, _img_resize, gradients);
-	calc_gradient_impl(gradients, gradients);
+	cv::Mat resized;
+	resize_impl(img, _img_resize, resized);
+	cv::Mat grad_mag;
+	cv::Mat grad_phase;
+	calc_gradient_impl(img, grad_mag, grad_phase);
 	cv::Mat descriptor;
-	create_descriptor_impl(gradients, _block_size, _num_bins, descriptor);
+	create_descriptor_impl(resized, _block_size, _num_bins, descriptor);
 	cv::Mat output = _classifier->classify_sync(descriptor);
 	if(output.at< float >(0) > 0)
 	{
@@ -190,13 +196,13 @@ void HogCPU::resize_impl(cv::Mat image,
 }
 
 void HogCPU::calc_gradient_impl(cv::Mat input_img,
-	cv::Mat& gradients)
+	cv::Mat& gradients_magnitude,
+	cv::Mat& gradients_phase)
 {
-	cv::Mat grad[2];
-	cv::Sobel(input_img, grad[0], 1, 1, 0, 1);
-	cv::Sobel(input_img, grad[1], 1, 0, 1, 1);
-	cv::cartToPolar(grad[0], grad[1], grad[0], grad[1], true);
-	cv::merge(grad, 2, gradients);
+	cv::Sobel(input_img, gradients_magnitude, 1, 1, 0, 1);
+	cv::Sobel(input_img, gradients_phase, 1, 0, 1, 1);
+	cv::cartToPolar(gradients_magnitude, gradients_phase, gradients_magnitude,
+		gradients_phase, true);
 }
 
 void HogCPU::create_descriptor_impl(cv::Mat gradients,

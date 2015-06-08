@@ -42,10 +42,12 @@ GHOG_LIB_STATUS HogGPU::resize(cv::Mat image,
 }
 
 GHOG_LIB_STATUS HogGPU::calc_gradient(cv::Mat input_img,
-	ImageCallback* callback)
+	cv::Mat& gradients_magnitude,
+	cv::Mat& gradients_phase,
+	GradientCallback* callback)
 {
-	boost::thread(&HogGPU::calc_gradient_async, this, input_img, callback)
-		.detach();
+	boost::thread(&HogGPU::calc_gradient_async, this, input_img,
+		gradients_magnitude, gradients_phase, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
@@ -138,11 +140,13 @@ void HogGPU::resize_async(cv::Mat image,
 }
 
 void HogGPU::calc_gradient_async(cv::Mat input_img,
-	ImageCallback* callback)
+	cv::Mat& gradients_magnitude,
+	cv::Mat& gradients_phase,
+	GradientCallback* callback)
 {
-	cv::Mat ret;
-	calc_gradient_impl(input_img, ret);
-	callback->image_processed(input_img, ret);
+	calc_gradient_impl(input_img, gradients_magnitude, gradients_phase);
+	callback->gradients_obtained(input_img, gradients_magnitude,
+		gradients_phase);
 }
 
 void HogGPU::create_descriptor_async(cv::Mat gradients,
@@ -159,11 +163,13 @@ void HogGPU::classify_async(cv::Mat img,
 	ClassifyCallback* callback)
 {
 	bool ret = false;
-	cv::Mat gradients;
-	resize_impl(img, _img_resize, gradients);
-	calc_gradient_impl(gradients, gradients);
+	cv::Mat resized;
+	resize_impl(img, _img_resize, resized);
+	cv::Mat grad_mag;
+	cv::Mat grad_phase;
+	calc_gradient_impl(img, grad_mag, grad_phase);
 	cv::Mat descriptor;
-	create_descriptor_impl(gradients, _block_size, _num_bins, descriptor);
+	create_descriptor_impl(resized, _block_size, _num_bins, descriptor);
 	cv::Mat output = _classifier->classify_sync(descriptor);
 	if(output.at< float >(0) > 0)
 	{
@@ -187,27 +193,26 @@ void HogGPU::resize_impl(cv::Mat image,
 	cv::Mat& resized_image)
 {
 	cv::gpu::CudaMem input(image, cv::gpu::CudaMem::ALLOC_ZEROCOPY);
-	cv::gpu::CudaMem output(resized_image,
-		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
+	cv::gpu::CudaMem output(resized_image, cv::gpu::CudaMem::ALLOC_ZEROCOPY);
 	cv::gpu::GpuMat output_gpu = output.createGpuMatHeader();
 	cv::gpu::resize(input.createGpuMatHeader(), output_gpu, new_size, 0, 0,
 		CV_INTER_LINEAR);
 }
 
 void HogGPU::calc_gradient_impl(cv::Mat input_img,
-	cv::Mat& gradients)
+	cv::Mat& gradients_magnitude,
+	cv::Mat& gradients_phase)
 {
 	cv::gpu::GpuMat input = cv::gpu::CudaMem(input_img,
 		cv::gpu::CudaMem::ALLOC_ZEROCOPY).createGpuMatHeader();
-	cv::gpu::GpuMat grad[2];
-	cv::gpu::CudaMem output(input_img.rows, input_img.cols, CV_32FC2,
-		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
-	cv::gpu::GpuMat output_gpu = output.createGpuMatHeader();
-	cv::gpu::Sobel(input, grad[0], 1, 1, 0, 1);
-	cv::gpu::Sobel(input, grad[1], 1, 0, 1, 1);
-	cv::gpu::cartToPolar(grad[0], grad[1], grad[0], grad[1], true);
-	cv::gpu::merge(grad, 2, output_gpu);
-	gradients = output.createMatHeader();
+	cv::gpu::GpuMat output_magnitude = cv::gpu::CudaMem(gradients_magnitude,
+		cv::gpu::CudaMem::ALLOC_ZEROCOPY).createGpuMatHeader();
+	cv::gpu::GpuMat output_phase = cv::gpu::CudaMem(gradients_phase,
+		cv::gpu::CudaMem::ALLOC_ZEROCOPY).createGpuMatHeader();
+	cv::gpu::Sobel(input, output_magnitude, 1, 1, 0, 1);
+	cv::gpu::Sobel(input, output_phase, 1, 0, 1, 1);
+	cv::gpu::cartToPolar(output_magnitude, output_phase, output_magnitude,
+		output_phase, true);
 }
 
 void HogGPU::create_descriptor_impl(cv::Mat gradients,

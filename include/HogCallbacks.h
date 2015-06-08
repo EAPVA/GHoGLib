@@ -25,6 +25,17 @@ public:
 		cv::Mat processed) = 0;
 };
 
+class GradientCallback
+{
+public:
+	virtual ~GradientCallback()
+	{
+	}
+	virtual void gradients_obtained(cv::Mat original,
+		cv::Mat gradients_magnitude,
+		cv::Mat gradients_phase) = 0;
+};
+
 class DescriptorCallback
 {
 public:

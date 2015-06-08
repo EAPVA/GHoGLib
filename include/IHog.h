@@ -31,7 +31,9 @@ public:
 		ImageCallback* callback) = 0;
 
 	virtual GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
-		ImageCallback* callback) = 0;
+		cv::Mat& gradients_magnitude,
+		cv::Mat& gradients_phase,
+		GradientCallback* callback) = 0;
 
 	virtual GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
 		cv::Size block_size,

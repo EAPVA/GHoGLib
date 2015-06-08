@@ -20,7 +20,7 @@ namespace ghog
 namespace lib
 {
 
-class HogCPU : public IHog
+class HogCPU: public IHog
 {
 public:
 	HogCPU(std::string settings_file);
@@ -32,7 +32,9 @@ public:
 		ImageCallback* callback);
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
-		ImageCallback* callback);
+		cv::Mat& gradients_magnitude,
+		cv::Mat& gradients_phase,
+		GradientCallback* callback);
 
 	GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
 		cv::Size block_size,
@@ -66,7 +68,9 @@ protected:
 		ImageCallback* callback);
 
 	void calc_gradient_async(cv::Mat input_img,
-		ImageCallback* callback);
+		cv::Mat& gradients_magnitude,
+		cv::Mat& gradients_phase,
+		GradientCallback* callback);
 
 	void create_descriptor_async(cv::Mat gradients,
 		cv::Size block_size,
@@ -87,7 +91,8 @@ protected:
 		cv::Mat& resized_image);
 
 	void calc_gradient_impl(cv::Mat input_img,
-		cv::Mat& gradients);
+		cv::Mat& gradients_magnitude,
+		cv::Mat& gradients_phase);
 
 	void create_descriptor_impl(cv::Mat gradients,
 		cv::Size block_size,
