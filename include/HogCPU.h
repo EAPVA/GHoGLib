@@ -28,6 +28,7 @@ public:
 
 	GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,
+		cv::Mat& resized_image,
 		ImageCallback* callback);
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
@@ -61,6 +62,7 @@ public:
 protected:
 	void resize_async(cv::Mat image,
 		cv::Size new_size,
+		cv::Mat& resized_image,
 		ImageCallback* callback);
 
 	void calc_gradient_async(cv::Mat input_img,
@@ -82,7 +84,7 @@ protected:
 
 	void resize_impl(cv::Mat image,
 		cv::Size new_size,
-		cv::Mat& resized);
+		cv::Mat& resized_image);
 
 	void calc_gradient_impl(cv::Mat input_img,
 		cv::Mat& gradients);

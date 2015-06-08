@@ -27,6 +27,7 @@ public:
 
 	virtual GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,
+		cv::Mat& resized_image,
 		ImageCallback* callback) = 0;
 
 	virtual GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,

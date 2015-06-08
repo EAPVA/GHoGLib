@@ -7,6 +7,8 @@
 
 #include <include/HogCPU.h>
 
+#include <iostream>
+
 #include <boost/thread.hpp>
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -31,9 +33,11 @@ HogCPU::~HogCPU()
 
 GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
 	cv::Size new_size,
+	cv::Mat& resized_image,
 	ImageCallback* callback)
 {
-	boost::thread(&HogCPU::resize_async, this, image, new_size, callback).detach();
+	boost::thread(&HogCPU::resize_async, this, image, new_size, resized_image,
+		callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
@@ -76,14 +80,14 @@ GHOG_LIB_STATUS HogCPU::locate(cv::Mat img,
 void HogCPU::load_settings(std::string filename)
 {
 	_img_resize.width = _settings.load_int("Hog",
-			"CLASSIFICATION_IMAGE_HEIGHT");
-		_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
+		"CLASSIFICATION_IMAGE_HEIGHT");
+	_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
 
-		_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
-		_block_size.width = _settings.load_int(std::string("Descriptor"),
-			"BLOCK_SIZE_COLS");
-		_block_size.height = _settings.load_int(std::string("Descriptor"),
-			"BLOCK_SIZE_ROWS");
+	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
+	_block_size.width = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_COLS");
+	_block_size.height = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_ROWS");
 }
 
 void HogCPU::set_classifier(IClassifier* classifier)
@@ -126,11 +130,11 @@ cv::Size HogCPU::get_block_size()
 
 void HogCPU::resize_async(cv::Mat image,
 	cv::Size new_size,
+	cv::Mat& resized_image,
 	ImageCallback* callback)
 {
-	cv::Mat ret;
-	resize_impl(image, new_size, ret);
-	callback->image_processed(image, ret);
+	resize_impl(image, new_size, resized_image);
+	callback->image_processed(image, resized_image);
 }
 
 void HogCPU::calc_gradient_async(cv::Mat input_img,
@@ -180,9 +184,9 @@ void HogCPU::locate_async(cv::Mat img,
 
 void HogCPU::resize_impl(cv::Mat image,
 	cv::Size new_size,
-	cv::Mat& resized)
+	cv::Mat& resized_image)
 {
-	cv::resize(image, resized, new_size, 0, 0, CV_INTER_AREA);
+	cv::resize(image, resized_image, new_size, 0, 0, CV_INTER_LINEAR);
 }
 
 void HogCPU::calc_gradient_impl(cv::Mat input_img,

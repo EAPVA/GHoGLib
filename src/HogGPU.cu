@@ -7,6 +7,8 @@
 
 #include <include/HogGPU.h>
 
+#include <iostream>
+
 #include <boost/thread.hpp>
 
 #include <opencv2/gpu/gpu.hpp>
@@ -31,9 +33,11 @@ HogGPU::~HogGPU()
 
 GHOG_LIB_STATUS HogGPU::resize(cv::Mat image,
 	cv::Size new_size,
+	cv::Mat& resized_image,
 	ImageCallback* callback)
 {
-	boost::thread(&HogGPU::resize_async, this, image, new_size, callback).detach();
+	boost::thread(&HogGPU::resize_async, this, image, new_size, resized_image,
+		callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
@@ -126,11 +130,11 @@ cv::Size HogGPU::get_block_size()
 
 void HogGPU::resize_async(cv::Mat image,
 	cv::Size new_size,
+	cv::Mat& resized_image,
 	ImageCallback* callback)
 {
-	cv::Mat ret;
-	resize_impl(image, new_size, ret);
-	callback->image_processed(image, ret);
+	resize_impl(image, new_size, resized_image);
+	callback->image_processed(image, resized_image);
 }
 
 void HogGPU::calc_gradient_async(cv::Mat input_img,
@@ -180,15 +184,14 @@ void HogGPU::locate_async(cv::Mat img,
 
 void HogGPU::resize_impl(cv::Mat image,
 	cv::Size new_size,
-	cv::Mat& resized)
+	cv::Mat& resized_image)
 {
 	cv::gpu::CudaMem input(image, cv::gpu::CudaMem::ALLOC_ZEROCOPY);
-	cv::gpu::CudaMem output(new_size, image.type(),
+	cv::gpu::CudaMem output(resized_image,
 		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
 	cv::gpu::GpuMat output_gpu = output.createGpuMatHeader();
 	cv::gpu::resize(input.createGpuMatHeader(), output_gpu, new_size, 0, 0,
 		CV_INTER_LINEAR);
-	resized = output.createMatHeader();
 }
 
 void HogGPU::calc_gradient_impl(cv::Mat input_img,
