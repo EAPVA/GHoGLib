@@ -31,6 +31,20 @@ HogCPU::~HogCPU()
 // TODO Auto-generated destructor stub
 }
 
+cv::Mat HogCPU::alloc_buffer(cv::Size buffer_size,
+	int type,
+	int border_size)
+{
+	//Allocate extra space for the borders. Force output to zero.
+	cv::Mat buf(buffer_size.height + 2 * border_size,
+		buffer_size.width + 2 * border_size, type, 0);
+	//Return the matrix without the borders
+	//The methods rowRange and colRange are 0-indexed, inclusive on the first
+	//parameter and exclusive on the second.
+	return buf.rowRange(border_size, buf.rows - border_size).colRange(
+		border_size, buf.cols - border_size);
+}
+
 GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
 	cv::Size new_size,
 	cv::Mat& resized_image,
@@ -42,12 +56,12 @@ GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
 }
 
 GHOG_LIB_STATUS HogCPU::calc_gradient(cv::Mat input_img,
-	cv::Mat& gradients_magnitude,
-	cv::Mat& gradients_phase,
+	cv::Mat& magnitude,
+	cv::Mat& phase,
 	GradientCallback* callback)
 {
-	boost::thread(&HogCPU::calc_gradient_async, this, input_img,
-		gradients_magnitude, gradients_phase, callback).detach();
+	boost::thread(&HogCPU::calc_gradient_async, this, input_img, magnitude,
+		phase, callback).detach();
 	return GHOG_LIB_STATUS_OK;
 }
 
@@ -140,13 +154,12 @@ void HogCPU::resize_async(cv::Mat image,
 }
 
 void HogCPU::calc_gradient_async(cv::Mat input_img,
-	cv::Mat& gradients_magnitude,
-	cv::Mat& gradients_phase,
+	cv::Mat& magnitude,
+	cv::Mat& phase,
 	GradientCallback* callback)
 {
-	calc_gradient_impl(input_img, gradients_magnitude, gradients_phase);
-	callback->gradients_obtained(input_img, gradients_magnitude,
-		gradients_phase);
+	calc_gradient_impl(input_img, magnitude, phase);
+	callback->gradients_obtained(input_img, magnitude, phase);
 }
 
 void HogCPU::create_descriptor_async(cv::Mat gradients,
@@ -196,13 +209,14 @@ void HogCPU::resize_impl(cv::Mat image,
 }
 
 void HogCPU::calc_gradient_impl(cv::Mat input_img,
-	cv::Mat& gradients_magnitude,
-	cv::Mat& gradients_phase)
+	cv::Mat& magnitude,
+	cv::Mat& phase)
 {
-	cv::Sobel(input_img, gradients_magnitude, -1, 1, 0, 1);
-	cv::Sobel(input_img, gradients_phase, -1, 0, 1, 1);
-	cv::cartToPolar(gradients_magnitude, gradients_phase, gradients_magnitude,
-		gradients_phase, true);
+	//Store dx temporarily on magnitude matrix
+	cv::Sobel(input_img, magnitude, -1, 1, 0, 1);
+	//Store dy temporarily on phase matrix
+	cv::Sobel(input_img, phase, -1, 0, 1, 1);
+	cv::cartToPolar(magnitude, phase, magnitude, phase, true);
 }
 
 void HogCPU::create_descriptor_impl(cv::Mat gradients,

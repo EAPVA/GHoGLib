@@ -26,14 +26,18 @@ public:
 	HogGPU(std::string settings_file);
 	virtual ~HogGPU();
 
+	cv::Mat alloc_buffer(cv::Size buffer_size,
+		int type,
+		int border_size);
+
 	GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,
 		cv::Mat& resized_image,
 		ImageCallback* callback);
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
-		cv::Mat& gradients_magnitude,
-		cv::Mat& gradients_phase,
+		cv::Mat& magnitude,
+		cv::Mat& phase,
 		GradientCallback* callback);
 
 	GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
@@ -68,8 +72,8 @@ protected:
 		ImageCallback* callback);
 
 	void calc_gradient_async(cv::Mat input_img,
-		cv::Mat& gradients_magnitude,
-		cv::Mat& gradients_phase,
+		cv::Mat& magnitude,
+		cv::Mat& phase,
 		GradientCallback* callback);
 
 	void create_descriptor_async(cv::Mat gradients,
@@ -91,8 +95,8 @@ protected:
 		cv::Mat& resized_image);
 
 	void calc_gradient_impl(cv::Mat input_img,
-		cv::Mat& gradients_magnitude,
-		cv::Mat& gradients_phase);
+		cv::Mat& magnitude,
+		cv::Mat& phase);
 
 	void create_descriptor_impl(cv::Mat gradients,
 		cv::Size block_size,

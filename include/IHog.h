@@ -25,14 +25,18 @@ public:
 	{
 	};
 
+	virtual cv::Mat alloc_buffer(cv::Size buffer_size,
+		int type,
+		int border_size) = 0;
+
 	virtual GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,
 		cv::Mat& resized_image,
 		ImageCallback* callback) = 0;
 
 	virtual GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
-		cv::Mat& gradients_magnitude,
-		cv::Mat& gradients_phase,
+		cv::Mat& magnitude,
+		cv::Mat& phase,
 		GradientCallback* callback) = 0;
 
 	virtual GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
