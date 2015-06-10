@@ -38,7 +38,8 @@ cv::Mat HogGPU::alloc_buffer(cv::Size buffer_size,
 {
 	//Allocate extra space for the borders. Force output to zero.
 	cv::gpu::CudaMem buf(buffer_size.height + 2 * border_size,
-		buffer_size.height + 2 * border_size, type, 0);
+		buffer_size.height + 2 * border_size, type,
+		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
 	//Return the matrix without the borders
 	//The methods rowRange and colRange are 0-indexed, inclusive on the first
 	//parameter and exclusive on the second.
