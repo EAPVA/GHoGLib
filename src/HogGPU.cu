@@ -233,9 +233,9 @@ void HogGPU::calc_gradient_impl(cv::Mat input_img,
 		grid_size.y++;
 	}
 
-	float* input_img_ptr = (float*) input_img.data;
-	float* magnitude_ptr = (float*) magnitude.data;
-	float* phase_ptr = (float*) phase.data;
+	float* input_img_ptr = input_img.ptr< float >(0);
+	float* magnitude_ptr = magnitude.ptr< float >(0);
+	float* phase_ptr = phase.ptr< float >(0);
 
 	float* device_input_img;
 	float* device_magnitude;
@@ -247,7 +247,7 @@ void HogGPU::calc_gradient_impl(cv::Mat input_img,
 
 	gradient_kernel<<<grid_size, block_size>>>(device_input_img,
 		device_magnitude, device_phase, input_img.rows, input_img.cols,
-		input_img.step[0], magnitude.step[0], phase.step[0]);
+		input_img.step1(), magnitude.step1(), phase.step1());
 	cudaDeviceSynchronize();
 }
 
