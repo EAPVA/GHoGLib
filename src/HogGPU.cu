@@ -38,7 +38,7 @@ cv::Mat HogGPU::alloc_buffer(cv::Size buffer_size,
 {
 	//Allocate extra space for the borders. Force output to zero.
 	cv::gpu::CudaMem buf(buffer_size.height + 2 * border_size,
-		buffer_size.height + 2 * border_size, type,
+		buffer_size.width + 2 * border_size, type,
 		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
 	//Return the matrix without the borders
 	//The methods rowRange and colRange are 0-indexed, inclusive on the first
@@ -233,9 +233,9 @@ void HogGPU::calc_gradient_impl(cv::Mat input_img,
 		grid_size.y++;
 	}
 
-	float* input_img_ptr = input_img.ptr< float >(0);
-	float* magnitude_ptr = magnitude.ptr< float >(0);
-	float* phase_ptr = phase.ptr< float >(0);
+	float* input_img_ptr = (float*) input_img.data;
+	float* magnitude_ptr = (float*) magnitude.data;
+	float* phase_ptr = (float*) phase.data;
 
 	float* device_input_img;
 	float* device_magnitude;
