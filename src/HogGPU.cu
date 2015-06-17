@@ -36,9 +36,8 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	int type,
 	cv::Mat& buffer)
 {
-	cv::gpu::CudaMem buf(buffer_size.height, buffer_size.width, type,
-		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
-	buffer = buf.createMatHeader();
+	cv::gpu::CudaMem buf(buffer, cv::gpu::CudaMem::ALLOC_ZEROCOPY);
+	buf.create(buffer_size.height, buffer_size.width, type);
 }
 
 GHOG_LIB_STATUS HogGPU::resize(cv::Mat image,
