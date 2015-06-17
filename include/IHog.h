@@ -25,9 +25,9 @@ public:
 	{
 	};
 
-	virtual cv::Mat alloc_buffer(cv::Size buffer_size,
+	virtual void alloc_buffer(cv::Size buffer_size,
 		int type,
-		int border_size) = 0;
+		cv::Mat& buffer) = 0;
 
 	virtual GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,

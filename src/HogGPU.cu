@@ -32,20 +32,13 @@ HogGPU::~HogGPU()
 // TODO Auto-generated destructor stub
 }
 
-cv::Mat HogGPU::alloc_buffer(cv::Size buffer_size,
+void HogGPU::alloc_buffer(cv::Size buffer_size,
 	int type,
-	int border_size)
+	cv::Mat& buffer)
 {
-	//Allocate extra space for the borders. Force output to zero.
-	cv::gpu::CudaMem buf(buffer_size.height + 2 * border_size,
-		buffer_size.width + 2 * border_size, type,
+	cv::gpu::CudaMem buf(buffer_size.height, buffer_size.width, type,
 		cv::gpu::CudaMem::ALLOC_ZEROCOPY);
-	//Return the matrix without the borders
-	//The methods rowRange and colRange are 0-indexed, inclusive on the first
-	//parameter and exclusive on the second.
-	cv::Mat ret = buf.createMatHeader();
-	return ret.rowRange(border_size, ret.rows - border_size).colRange(
-		border_size, ret.cols - border_size);
+	buffer = buf.createMatHeader();
 }
 
 GHOG_LIB_STATUS HogGPU::resize(cv::Mat image,

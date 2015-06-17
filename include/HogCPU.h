@@ -26,9 +26,9 @@ public:
 	HogCPU(std::string settings_file);
 	virtual ~HogCPU();
 
-	cv::Mat alloc_buffer(cv::Size buffer_size,
+	void alloc_buffer(cv::Size buffer_size,
 		int type,
-		int border_size);
+		cv::Mat& buffer);
 
 	GHOG_LIB_STATUS resize(cv::Mat image,
 		cv::Size new_size,

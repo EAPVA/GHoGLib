@@ -31,18 +31,12 @@ HogCPU::~HogCPU()
 // TODO Auto-generated destructor stub
 }
 
-cv::Mat HogCPU::alloc_buffer(cv::Size buffer_size,
+void HogCPU::alloc_buffer(cv::Size buffer_size,
 	int type,
-	int border_size)
+	cv::Mat& buffer)
 {
-	//Allocate extra space for the borders. Force output to zero.
-	cv::Mat buf(buffer_size.height + 2 * border_size,
-		buffer_size.width + 2 * border_size, type, 0);
-	//Return the matrix without the borders
-	//The methods rowRange and colRange are 0-indexed, inclusive on the first
-	//parameter and exclusive on the second.
-	return buf.rowRange(border_size, buf.rows - border_size).colRange(
-		border_size, buf.cols - border_size);
+	buffer.create(buffer_size.height, buffer_size.width, type);
+	buffer.setTo(0);
 }
 
 GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
