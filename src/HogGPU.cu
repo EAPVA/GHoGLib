@@ -37,7 +37,18 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	cv::Mat& buffer)
 {
 	cv::gpu::CudaMem buf(buffer, cv::gpu::CudaMem::ALLOC_ZEROCOPY);
+	std::cout << "Ref counter -> cmem: " << (*(buf.refcount)) << " @ "
+		<< buf.refcount << "  mat: " << (*(buffer.refcount)) << " @ "
+		<< buffer.refcount << std::endl;
 	buf.create(buffer_size.height, buffer_size.width, type);
+	buffer = buf.createMatHeader();
+	std::cout << "Ref counter -> cmem: " << (*(buf.refcount)) << " @ "
+		<< buf.refcount << "  mat: " << (*(buffer.refcount)) << " @ "
+		<< buffer.refcount << std::endl;
+	buffer.addref();
+	std::cout << "Ref counter -> cmem: " << (*(buf.refcount)) << " @ "
+		<< buf.refcount << "  mat: " << (*(buffer.refcount)) << " @ "
+		<< buffer.refcount << std::endl;
 }
 
 GHOG_LIB_STATUS HogGPU::resize(cv::Mat image,
