@@ -47,6 +47,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	{
 		std::cout << " invalid @ 0x00";
 	}
+	std::cout << "  mat: ";
 	if(buffer.refcount != 0)
 	{
 		std::cout << (*(buffer.refcount)) << " @ " << buffer.refcount;
@@ -68,6 +69,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	{
 		std::cout << " invalid @ 0x00";
 	}
+	std::cout << "  mat: ";
 	if(buffer.refcount != 0)
 	{
 		std::cout << (*(buffer.refcount)) << " @ " << buffer.refcount;
@@ -87,6 +89,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	{
 		std::cout << " invalid @ 0x00";
 	}
+	std::cout << "  mat: ";
 	if(buffer.refcount != 0)
 	{
 		std::cout << (*(buffer.refcount)) << " @ " << buffer.refcount;
