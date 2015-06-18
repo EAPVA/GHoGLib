@@ -30,23 +30,33 @@ public:
 		int type,
 		cv::Mat& buffer);
 
-	GHOG_LIB_STATUS resize(cv::Mat image,
-		cv::Size new_size,
-		cv::Mat& resized_image,
+	GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
+
+	void image_normalization_sync(cv::Mat& image);
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase,
 		GradientCallback* callback);
 
-	GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
-		cv::Size block_size,
-		int num_bins,
+	void calc_gradient_sync(cv::Mat input_img,
+		cv::Mat& magnitude,
+		cv::Mat& phase);
+
+	GHOG_LIB_STATUS create_descriptor(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor,
 		DescriptorCallback* callback);
+
+	void create_descriptor_sync(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor);
 
 	GHOG_LIB_STATUS classify(cv::Mat img,
 		ClassifyCallback* callback);
+
+	bool classify_sync(cv::Mat img);
 
 	GHOG_LIB_STATUS locate(cv::Mat img,
 		cv::Rect roi,
@@ -54,29 +64,18 @@ public:
 		cv::Size window_stride,
 		LocateCallback* callback);
 
-	void resize_sync(cv::Mat image,
-		cv::Size new_size,
-		cv::Mat& resized_image);
-
-	void calc_gradient_sync(cv::Mat input_img,
-		cv::Mat& magnitude,
-		cv::Mat& phase);
-
-	void create_descriptor_sync(cv::Mat gradients,
-		cv::Size block_size,
-		int num_bins,
-		cv::Mat& descriptor);
+	std::vector< cv::Rect > locate_sync(cv::Mat img,
+		cv::Rect roi,
+		cv::Size window_size,
+		cv::Size window_stride);
 
 	void load_settings(std::string filename);
 
 	void set_classifier(IClassifier* classifier);
 
-	GHOG_LIB_STATUS set_img_resize(cv::Size img_resize);
-	cv::Size get_img_resize();
-	GHOG_LIB_STATUS set_num_bins(int num_bins);
-	int get_num_bins();
-	GHOG_LIB_STATUS set_block_size(cv::Size block_size);
-	cv::Size get_block_size();
+	GHOG_LIB_STATUS set_param(std::string param,
+		std::string value);
+	std::string get_param(std::string param);
 
 protected:
 	void resize_async(cv::Mat image,

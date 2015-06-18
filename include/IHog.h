@@ -8,6 +8,8 @@
 #ifndef IHOG_H_
 #define IHOG_H_
 
+#include <vector>
+
 #include <opencv2/core/core.hpp>
 
 #include <include/GHogLibConstants.inc>
@@ -30,23 +32,33 @@ public:
 		int type,
 		cv::Mat& buffer) = 0;
 
-	virtual GHOG_LIB_STATUS resize(cv::Mat image,
-		cv::Size new_size,
-		cv::Mat& resized_image,
+	virtual GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback) = 0;
+
+	virtual void image_normalization_sync(cv::Mat& image) = 0;
 
 	virtual GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase,
 		GradientCallback* callback) = 0;
 
-	virtual GHOG_LIB_STATUS create_descriptor(cv::Mat gradients,
-		cv::Size block_size,
-		int num_bins,
+	virtual void calc_gradient_sync(cv::Mat input_img,
+		cv::Mat& magnitude,
+		cv::Mat& phase) = 0;
+
+	virtual GHOG_LIB_STATUS create_descriptor(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor,
 		DescriptorCallback* callback) = 0;
+
+	virtual void create_descriptor_sync(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor) = 0;
 
 	virtual GHOG_LIB_STATUS classify(cv::Mat img,
 		ClassifyCallback* callback) = 0;
+
+	virtual bool classify_sync(cv::Mat img) = 0;
 
 	virtual GHOG_LIB_STATUS locate(cv::Mat img,
 		cv::Rect roi,
@@ -54,29 +66,18 @@ public:
 		cv::Size window_stride,
 		LocateCallback* callback) = 0;
 
-	virtual void resize_sync(cv::Mat image,
-		cv::Size new_size,
-		cv::Mat& resized_image) = 0;
-
-	virtual void calc_gradient_sync(cv::Mat input_img,
-		cv::Mat& magnitude,
-		cv::Mat& phase) = 0;
-
-	virtual void create_descriptor_sync(cv::Mat gradients,
-		cv::Size block_size,
-		int num_bins,
-		cv::Mat& descriptor) = 0;
+	virtual std::vector< cv::Rect > locate_sync(cv::Mat img,
+		cv::Rect roi,
+		cv::Size window_size,
+		cv::Size window_stride) = 0;
 
 	virtual void load_settings(std::string filename) = 0;
 
 	virtual void set_classifier(IClassifier* classifier) = 0;
 
-	virtual GHOG_LIB_STATUS set_img_resize(cv::Size img_resize) = 0;
-	virtual cv::Size get_img_resize() = 0;
-	virtual GHOG_LIB_STATUS set_num_bins(int num_bins) = 0;
-	virtual int get_num_bins() = 0;
-	virtual GHOG_LIB_STATUS set_block_size(cv::Size block_size) = 0;
-	virtual cv::Size get_block_size() = 0;
+	virtual GHOG_LIB_STATUS set_param(std::string param,
+		std::string value) = 0;
+	virtual std::string get_param(std::string param) = 0;
 };
 
 } /* namespace lib */

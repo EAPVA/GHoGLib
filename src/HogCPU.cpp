@@ -7,11 +7,11 @@
 
 #include <include/HogCPU.h>
 
-#include <iostream>
-
 #include <boost/thread.hpp>
 
 #include <opencv2/imgproc/imgproc.hpp>
+
+#include <include/Utils.h>
 
 namespace ghog
 {
@@ -39,14 +39,24 @@ void HogCPU::alloc_buffer(cv::Size buffer_size,
 	buffer.setTo(0);
 }
 
-GHOG_LIB_STATUS HogCPU::resize(cv::Mat image,
-	cv::Size new_size,
-	cv::Mat& resized_image,
+GHOG_LIB_STATUS HogCPU::image_normalization(cv::Mat& image,
 	ImageCallback* callback)
 {
-	boost::thread(&HogCPU::resize_async, this, image, new_size, resized_image,
-		callback).detach();
+	boost::thread(&HogCPU::image_normalization_async, this, image, callback)
+		.detach();
 	return GHOG_LIB_STATUS_OK;
+}
+
+void HogCPU::image_normalization_async(cv::Mat& image,
+	ImageCallback* callback)
+{
+	image_normalization_sync(image);
+	callback->image_processed(image);
+}
+
+void HogCPU::image_normalization_sync(cv::Mat& image)
+{
+	//TODO
 }
 
 GHOG_LIB_STATUS HogCPU::calc_gradient(cv::Mat input_img,
@@ -59,14 +69,136 @@ GHOG_LIB_STATUS HogCPU::calc_gradient(cv::Mat input_img,
 	return GHOG_LIB_STATUS_OK;
 }
 
-GHOG_LIB_STATUS HogCPU::create_descriptor(cv::Mat gradients,
-	cv::Size block_size,
-	int num_bins,
+void HogCPU::calc_gradient_async(cv::Mat input_img,
+	cv::Mat& magnitude,
+	cv::Mat& phase,
+	GradientCallback* callback)
+{
+	calc_gradient_sync(input_img, magnitude, phase);
+	callback->gradients_obtained(magnitude, phase);
+}
+
+void HogCPU::calc_gradient_sync(cv::Mat input_img,
+	cv::Mat& magnitude,
+	cv::Mat& phase)
+{
+	//Store dx temporarily on magnitude matrix
+	cv::Sobel(input_img, magnitude, -1, 1, 0, 1);
+	//Store dy temporarily on phase matrix
+	cv::Sobel(input_img, phase, -1, 0, 1, 1);
+	cv::cartToPolar(magnitude, phase, magnitude, phase, true);
+}
+
+GHOG_LIB_STATUS HogCPU::create_descriptor(cv::Mat magnitude,
+	cv::Mat phase,
+	cv::Mat& descriptor,
 	DescriptorCallback* callback)
 {
-	boost::thread(&HogCPU::create_descriptor_async, this, gradients, block_size,
-		num_bins, callback).detach();
+	boost::thread(&HogCPU::create_descriptor_async, this, magnitude, phase,
+		descriptor, callback).detach();
 	return GHOG_LIB_STATUS_OK;
+}
+
+void HogCPU::create_descriptor_async(cv::Mat magnitude,
+	cv::Mat phase,
+	cv::Mat& descriptor,
+	DescriptorCallback* callback)
+{
+	create_descriptor_sync(magnitude, phase, descriptor);
+	callback->descriptor_obtained(descriptor);
+}
+
+void HogCPU::create_descriptor_sync(cv::Mat magnitude,
+	cv::Mat phase,
+	cv::Mat& descriptor)
+{
+	//TODO: verify that magnitude and phase have same size and type.
+	//TODO: get preallocated descriptor and verify it, instead of creating.
+
+	cv::Size cell_grid = Utils::partition(magnitude.size(), _cell_size);
+	int total_cells = cell_grid.width * cell_grid.height;
+	int blocks_per_cell = _block_size.width * _block_size.height;
+	int total_outputs = total_cells * blocks_per_cell * _num_bins;
+	descriptor.create(1, total_outputs, CV_32FC1);
+	cv::Mat histograms(total_cells, _num_bins, CV_32FC1);
+	int top_row = 0, bottom_row = 0, left_col = 0, right_col = 0;
+	int extra_rows = magnitude.rows % cell_grid.height;
+	int extra_cols = magnitude.cols % cell_grid.width;
+	int output_col_left = 0;
+	int output_col_right = _num_bins;
+	int histogram_row = 0;
+
+	for(int i = 0; i < cell_grid.height; ++i)
+	{
+		bottom_row = top_row += _cell_size.height;
+		if(extra_rows > 0)
+		{
+			extra_rows--;
+			bottom_row++;
+		}
+		cv::Mat mag_aux = magnitude.rowRange(top_row, bottom_row);
+		cv::Mat phase_aux = phase.rowRange(top_row, bottom_row);
+		for(int j = 0; j < cell_grid.width; ++j)
+		{
+			right_col = left_col += _cell_size.width;
+			if(extra_cols > 0)
+			{
+				extra_cols--;
+				right_col++;
+			}
+			calc_histogram(mag_aux.colRange(left_col, right_col),
+				phase_aux.colRange(left_col, right_col),
+				histograms.row(histogram_row));
+			histogram_row++;
+			left_col = right_col;
+		}
+		extra_cols = magnitude.cols % cell_grid.width;
+		top_row = bottom_row;
+	}
+
+	//TODO: normalize and put on the descriptor
+}
+
+void HogCPU::calc_histogram(cv::Mat magnitude,
+	cv::Mat phase,
+	cv::Mat histogram)
+{
+	float bin_size = 360.0f / (float)_num_bins;
+
+	int left_bin, right_bin;
+	float delta;
+
+	float mag_total = 0.0f;
+
+	for(int i = 0; i < magnitude.rows; ++i)
+	{
+		for(int j = 0; j < magnitude.cols; ++j)
+		{
+			if(magnitude.at< float >(i, j) > 0)
+			{
+				left_bin = (int)floor(
+					(phase.at< float >(i, j) - bin_size / 2.0f) / bin_size);
+				if(left_bin < 0)
+					left_bin += _num_bins;
+				right_bin = (left_bin + 1) % _num_bins;
+
+				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
+				if(right_bin == 0)
+					delta -= _num_bins;
+
+				histogram.at< float >(left_bin) += (0.5 - delta)
+					* magnitude.at< float >(i, j);
+				histogram.at< float >(right_bin) += (0.5 + delta)
+					* magnitude.at< float >(i, j);
+				mag_total += magnitude.at< float >(i, j);
+			}
+		}
+	}
+
+	for(int i = 0; i < _num_bins; ++i)
+	{
+		histogram.at< float >(i) /= mag_total;
+	}
 }
 
 GHOG_LIB_STATUS HogCPU::classify(cv::Mat img,
@@ -74,6 +206,30 @@ GHOG_LIB_STATUS HogCPU::classify(cv::Mat img,
 {
 	boost::thread(&HogCPU::classify_async, this, img, callback).detach();
 	return GHOG_LIB_STATUS_OK;
+}
+
+void HogCPU::classify_async(cv::Mat img,
+	ClassifyCallback* callback)
+{
+	bool ret = classify_sync(img);
+	callback->classification_result(ret);
+}
+
+bool HogCPU::classify_sync(cv::Mat img)
+{
+	bool ret = false;
+	image_normalization_sync(img);
+	cv::Mat grad_mag(img.size(), img.type());
+	cv::Mat grad_phase(img.size(), img.type());
+	calc_gradient_sync(img, grad_mag, grad_phase);
+	cv::Mat descriptor;
+	create_descriptor_sync(grad_mag, grad_phase, descriptor);
+	cv::Mat output = _classifier->classify_sync(descriptor);
+	if(output.at< float >(0) > 0)
+	{
+		ret = true;
+	}
+	return ret;
 }
 
 GHOG_LIB_STATUS HogCPU::locate(cv::Mat img,
@@ -85,6 +241,26 @@ GHOG_LIB_STATUS HogCPU::locate(cv::Mat img,
 	boost::thread(&HogCPU::locate_async, this, img, roi, window_size,
 		window_stride, callback).detach();
 	return GHOG_LIB_STATUS_OK;
+}
+
+void HogCPU::locate_async(cv::Mat img,
+	cv::Rect roi,
+	cv::Size window_size,
+	cv::Size window_stride,
+	LocateCallback* callback)
+{
+	std::vector< cv::Rect > ret = locate_sync(img, roi, window_size,
+		window_stride);
+	callback->objects_located(ret);
+}
+
+std::vector< cv::Rect > HogCPU::locate_sync(cv::Mat img,
+	cv::Rect roi,
+	cv::Size window_size,
+	cv::Size window_stride)
+{
+	std::vector< cv::Rect > ret;
+	return ret;
 }
 
 void HogCPU::load_settings(std::string filename)
@@ -103,204 +279,6 @@ void HogCPU::load_settings(std::string filename)
 void HogCPU::set_classifier(IClassifier* classifier)
 {
 	_classifier = classifier;
-}
-
-GHOG_LIB_STATUS HogCPU::set_img_resize(cv::Size img_resize)
-{
-	_img_resize = img_resize;
-	return GHOG_LIB_STATUS_OK;
-}
-
-cv::Size HogCPU::get_img_resize()
-{
-	return _img_resize;
-}
-
-GHOG_LIB_STATUS HogCPU::set_num_bins(int num_bins)
-{
-	_num_bins = num_bins;
-	return GHOG_LIB_STATUS_OK;
-}
-
-int HogCPU::get_num_bins()
-{
-	return _num_bins;
-}
-
-GHOG_LIB_STATUS HogCPU::set_block_size(cv::Size block_size)
-{
-	_block_size = block_size;
-	return GHOG_LIB_STATUS_OK;
-}
-
-cv::Size HogCPU::get_block_size()
-{
-	return _block_size;
-}
-
-void HogCPU::resize_async(cv::Mat image,
-	cv::Size new_size,
-	cv::Mat& resized_image,
-	ImageCallback* callback)
-{
-	resize_sync(image, new_size, resized_image);
-	callback->image_processed(image, resized_image);
-}
-
-void HogCPU::calc_gradient_async(cv::Mat input_img,
-	cv::Mat& magnitude,
-	cv::Mat& phase,
-	GradientCallback* callback)
-{
-	calc_gradient_sync(input_img, magnitude, phase);
-	callback->gradients_obtained(input_img, magnitude, phase);
-}
-
-void HogCPU::create_descriptor_async(cv::Mat gradients,
-	cv::Size block_size,
-	int num_bins,
-	DescriptorCallback* callback)
-{
-	cv::Mat ret;
-	create_descriptor_sync(gradients, block_size, num_bins, ret);
-	callback->descriptor_obtained(gradients, ret);
-}
-
-void HogCPU::classify_async(cv::Mat img,
-	ClassifyCallback* callback)
-{
-	bool ret = false;
-	cv::Mat resized;
-	resize_sync(img, _img_resize, resized);
-	cv::Mat grad_mag;
-	cv::Mat grad_phase;
-	calc_gradient_sync(img, grad_mag, grad_phase);
-	cv::Mat descriptor;
-	create_descriptor_sync(resized, _block_size, _num_bins, descriptor);
-	cv::Mat output = _classifier->classify_sync(descriptor);
-	if(output.at< float >(0) > 0)
-	{
-		ret = true;
-	}
-	callback->classification_result(img, ret);
-}
-
-void HogCPU::locate_async(cv::Mat img,
-	cv::Rect roi,
-	cv::Size window_size,
-	cv::Size window_stride,
-	LocateCallback* callback)
-{
-	std::vector< cv::Rect > ret;
-	callback->objects_located(img, ret);
-}
-
-void HogCPU::resize_sync(cv::Mat image,
-	cv::Size new_size,
-	cv::Mat& resized_image)
-{
-	cv::resize(image, resized_image, new_size, 0, 0, CV_INTER_LINEAR);
-}
-
-void HogCPU::calc_gradient_sync(cv::Mat input_img,
-	cv::Mat& magnitude,
-	cv::Mat& phase)
-{
-	//Store dx temporarily on magnitude matrix
-	cv::Sobel(input_img, magnitude, -1, 1, 0, 1);
-	//Store dy temporarily on phase matrix
-	cv::Sobel(input_img, phase, -1, 0, 1, 1);
-	cv::cartToPolar(magnitude, phase, magnitude, phase, true);
-}
-
-void HogCPU::create_descriptor_sync(cv::Mat gradients,
-	cv::Size block_size,
-	int num_bins,
-	cv::Mat& descriptor)
-{
-	int total_cells = block_size.width * block_size.height;
-	descriptor.create(total_cells, num_bins, CV_32FC1);
-	int top_row = 0, bottom_row = 0, left_col = 0, right_col = 0;
-	int row_step = gradients.rows / block_size.height;
-	int extra_rows = gradients.rows % block_size.height;
-	int col_step = gradients.cols / block_size.width;
-	int extra_cols = gradients.cols % block_size.width;
-
-	for(int i = 0; i < block_size.height; ++i)
-	{
-		bottom_row = top_row += row_step;
-		if(extra_rows > 0)
-		{
-			extra_rows--;
-			bottom_row++;
-		}
-		cv::Mat temp = gradients.rowRange(top_row, bottom_row);
-		for(int j = 0; j < block_size.width; ++j)
-		{
-			right_col = left_col += col_step;
-			if(extra_cols > 0)
-			{
-				extra_cols--;
-				right_col++;
-			}
-			calc_histogram(temp.colRange(left_col, right_col), num_bins,
-				descriptor.row(i * block_size.height + j));
-			left_col = right_col;
-		}
-		extra_cols = gradients.cols % block_size.width;
-		top_row = bottom_row;
-	}
-
-	descriptor.reshape(1, 1);
-}
-
-void HogCPU::calc_histogram(cv::Mat gradients,
-	int num_bins,
-	cv::Mat histogram)
-{
-	float bin_size = 360.0f / (float)num_bins;
-	histogram = cv::Mat(1, num_bins, CV_32FC1, 0.0f);
-
-	//TODO Split more efficiently (maybe use reshape to get only one channel)
-	cv::Mat aux[2];
-	cv::split(gradients, aux);
-	cv::Mat mag = aux[0];
-	cv::Mat phase = aux[1];
-
-	int left_bin, right_bin;
-	float delta;
-
-	float mag_total = 0.0f;
-
-	for(int i = 0; i < mag.rows; ++i)
-	{
-		for(int j = 0; j < mag.cols; ++j)
-		{
-			if(mag.at< float >(i, j) > 0)
-			{
-				left_bin = (int)floor(
-					(phase.at< float >(i, j) - bin_size / 2.0f) / bin_size);
-				if(left_bin < 0)
-					left_bin += num_bins;
-				right_bin = (left_bin + 1) % num_bins;
-
-				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
-				if(right_bin == 0)
-					delta -= num_bins;
-
-				histogram.at< float >(left_bin) += (0.5 - delta)
-					* mag.at< float >(i, j);
-				histogram.at< float >(right_bin) += (0.5 + delta)
-					* mag.at< float >(i, j);
-				mag_total += mag.at< float >(i, j);
-			}
-		}
-	}
-
-	for(int i = 0; i < num_bins; ++i)
-	{
-		histogram.at< float >(i) /= mag_total;
-	}
 }
 
 } /* namespace lib */
