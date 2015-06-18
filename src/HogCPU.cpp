@@ -143,7 +143,7 @@ void HogCPU::resize_async(cv::Mat image,
 	cv::Mat& resized_image,
 	ImageCallback* callback)
 {
-	resize_impl(image, new_size, resized_image);
+	resize_sync(image, new_size, resized_image);
 	callback->image_processed(image, resized_image);
 }
 
@@ -152,7 +152,7 @@ void HogCPU::calc_gradient_async(cv::Mat input_img,
 	cv::Mat& phase,
 	GradientCallback* callback)
 {
-	calc_gradient_impl(input_img, magnitude, phase);
+	calc_gradient_sync(input_img, magnitude, phase);
 	callback->gradients_obtained(input_img, magnitude, phase);
 }
 
@@ -162,7 +162,7 @@ void HogCPU::create_descriptor_async(cv::Mat gradients,
 	DescriptorCallback* callback)
 {
 	cv::Mat ret;
-	create_descriptor_impl(gradients, block_size, num_bins, ret);
+	create_descriptor_sync(gradients, block_size, num_bins, ret);
 	callback->descriptor_obtained(gradients, ret);
 }
 
@@ -171,12 +171,12 @@ void HogCPU::classify_async(cv::Mat img,
 {
 	bool ret = false;
 	cv::Mat resized;
-	resize_impl(img, _img_resize, resized);
+	resize_sync(img, _img_resize, resized);
 	cv::Mat grad_mag;
 	cv::Mat grad_phase;
-	calc_gradient_impl(img, grad_mag, grad_phase);
+	calc_gradient_sync(img, grad_mag, grad_phase);
 	cv::Mat descriptor;
-	create_descriptor_impl(resized, _block_size, _num_bins, descriptor);
+	create_descriptor_sync(resized, _block_size, _num_bins, descriptor);
 	cv::Mat output = _classifier->classify_sync(descriptor);
 	if(output.at< float >(0) > 0)
 	{
@@ -195,14 +195,14 @@ void HogCPU::locate_async(cv::Mat img,
 	callback->objects_located(img, ret);
 }
 
-void HogCPU::resize_impl(cv::Mat image,
+void HogCPU::resize_sync(cv::Mat image,
 	cv::Size new_size,
 	cv::Mat& resized_image)
 {
 	cv::resize(image, resized_image, new_size, 0, 0, CV_INTER_LINEAR);
 }
 
-void HogCPU::calc_gradient_impl(cv::Mat input_img,
+void HogCPU::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& magnitude,
 	cv::Mat& phase)
 {
@@ -213,7 +213,7 @@ void HogCPU::calc_gradient_impl(cv::Mat input_img,
 	cv::cartToPolar(magnitude, phase, magnitude, phase, true);
 }
 
-void HogCPU::create_descriptor_impl(cv::Mat gradients,
+void HogCPU::create_descriptor_sync(cv::Mat gradients,
 	cv::Size block_size,
 	int num_bins,
 	cv::Mat& descriptor)

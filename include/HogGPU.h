@@ -54,6 +54,19 @@ public:
 		cv::Size window_stride,
 		LocateCallback* callback);
 
+	void resize_sync(cv::Mat image,
+		cv::Size new_size,
+		cv::Mat& resized_image);
+
+	void calc_gradient_sync(cv::Mat input_img,
+		cv::Mat& magnitude,
+		cv::Mat& phase);
+
+	void create_descriptor_sync(cv::Mat gradients,
+		cv::Size block_size,
+		int num_bins,
+		cv::Mat& descriptor);
+
 	void load_settings(std::string filename);
 
 	void set_classifier(IClassifier* classifier);
@@ -89,19 +102,6 @@ protected:
 		cv::Size window_size,
 		cv::Size window_stride,
 		LocateCallback* callback);
-
-	void resize_impl(cv::Mat image,
-		cv::Size new_size,
-		cv::Mat& resized_image);
-
-	void calc_gradient_impl(cv::Mat input_img,
-		cv::Mat& magnitude,
-		cv::Mat& phase);
-
-	void create_descriptor_impl(cv::Mat gradients,
-		cv::Size block_size,
-		int num_bins,
-		cv::Mat& descriptor);
 
 	void calc_histogram(cv::Mat gradients,
 		int num_bins,

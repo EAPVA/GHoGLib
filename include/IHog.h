@@ -23,7 +23,8 @@ class IHog
 public:
 	virtual ~IHog()
 	{
-	};
+	}
+	;
 
 	virtual void alloc_buffer(cv::Size buffer_size,
 		int type,
@@ -52,6 +53,19 @@ public:
 		cv::Size window_size,
 		cv::Size window_stride,
 		LocateCallback* callback) = 0;
+
+	virtual void resize_sync(cv::Mat image,
+		cv::Size new_size,
+		cv::Mat& resized_image) = 0;
+
+	virtual void calc_gradient_sync(cv::Mat input_img,
+		cv::Mat& magnitude,
+		cv::Mat& phase) = 0;
+
+	virtual void create_descriptor_sync(cv::Mat gradients,
+		cv::Size block_size,
+		int num_bins,
+		cv::Mat& descriptor) = 0;
 
 	virtual void load_settings(std::string filename) = 0;
 
