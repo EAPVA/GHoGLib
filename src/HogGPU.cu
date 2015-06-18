@@ -62,6 +62,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	buffer = cudamem.createMatHeader();
 
 ///////////////////////////////////////////////////////////////////////////////
+	std::cout << "Ref counter -> cmem: ";
 	if(cudamem.refcount != 0)
 	{
 		std::cout << (*(cudamem.refcount)) << " @ " << cudamem.refcount;
@@ -77,11 +78,13 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	{
 		std::cout << " invalid @ 0x00";
 	}
+	std::cout << std::endl;
 ///////////////////////////////////////////////////////////////////////////////
 
 	buffer.addref();
 
 ///////////////////////////////////////////////////////////////////////////////
+	std::cout << "Ref counter -> cmem: ";
 	if(cudamem.refcount != 0)
 	{
 		std::cout << (*(cudamem.refcount)) << " @ " << cudamem.refcount;
@@ -97,6 +100,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	{
 		std::cout << " invalid @ 0x00";
 	}
+	std::cout << std::endl;
 ///////////////////////////////////////////////////////////////////////////////
 
 }
