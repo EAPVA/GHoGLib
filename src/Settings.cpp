@@ -65,13 +65,15 @@ void Settings::save_file()
 void Settings::save_default_settings(std::string filename)
 {
 	tinyxml2::XMLDocument doc;
-	tinyxml2::XMLElement* hog_module = doc.NewElement("Hog");
-	hog_module->SetAttribute("CLASSIFICATION_IMAGE_HEIGHT", 32);
-	hog_module->SetAttribute("CLASSIFICATION_IMAGE_WIDTH", 32);
-	doc.InsertEndChild(hog_module);
+//	tinyxml2::XMLElement* hog_module = doc.NewElement("Hog");
+//	hog_module->SetAttribute("CLASSIFICATION_IMAGE_HEIGHT", 32);
+//	hog_module->SetAttribute("CLASSIFICATION_IMAGE_WIDTH", 32);
+//	doc.InsertEndChild(hog_module);
 	tinyxml2::XMLElement* descriptor_module = doc.NewElement("Descriptor");
-	descriptor_module->SetAttribute("BLOCK_SIZE_COLS", 1);
-	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS", 3);
+	descriptor_module->SetAttribute("CELL_SIZE_COLS", 6);
+	descriptor_module->SetAttribute("CELL_SIZE_ROWS", 6);
+	descriptor_module->SetAttribute("BLOCK_SIZE_COLS", 2);
+	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS", 2);
 	descriptor_module->SetAttribute("NUMBER_OF_BINS", 9);
 	doc.InsertEndChild(descriptor_module);
 	tinyxml2::XMLElement* classifier_module = doc.NewElement("Classifier");
