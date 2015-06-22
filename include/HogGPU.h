@@ -78,9 +78,7 @@ public:
 	std::string get_param(std::string param);
 
 protected:
-	void resize_async(cv::Mat image,
-		cv::Size new_size,
-		cv::Mat& resized_image,
+	void image_normalization_async(cv::Mat& image,
 		ImageCallback* callback);
 
 	void calc_gradient_async(cv::Mat input_img,
@@ -88,9 +86,9 @@ protected:
 		cv::Mat& phase,
 		GradientCallback* callback);
 
-	void create_descriptor_async(cv::Mat gradients,
-		cv::Size block_size,
-		int num_bins,
+	void create_descriptor_async(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor,
 		DescriptorCallback* callback);
 
 	void classify_async(cv::Mat img,
@@ -102,16 +100,18 @@ protected:
 		cv::Size window_stride,
 		LocateCallback* callback);
 
-	void calc_histogram(cv::Mat gradients,
-		int num_bins,
+	void calc_histogram(cv::Mat magnitude,
+		cv::Mat phase,
 		cv::Mat histogram);
+
+	std::string get_module(std::string param_name);
 
 	Settings _settings;
 
 	IClassifier* _classifier;
 
-	cv::Size _img_resize;
 	int _num_bins;
+	cv::Size _cell_size; // In number of pixels
 	cv::Size _block_size; // In number of cells
 };
 

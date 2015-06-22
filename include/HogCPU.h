@@ -110,7 +110,6 @@ protected:
 
 	IClassifier* _classifier;
 
-	cv::Size _img_resize;
 	int _num_bins;
 	cv::Size _block_size; // In number of cells
 	cv::Size _cell_size; //In number of pixels
