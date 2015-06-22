@@ -13,14 +13,14 @@
 
 #include <include/IClassifier.h>
 #include <include/Settings.h>
-#include <include/IHog.h>
+#include <include/HogDescriptor.h>
 
 namespace ghog
 {
 namespace lib
 {
 
-class HogGPU: public IHog
+class HogGPU: public HogDescriptor
 {
 public:
 	HogGPU(std::string settings_file);
@@ -44,75 +44,27 @@ public:
 		cv::Mat& magnitude,
 		cv::Mat& phase);
 
-	GHOG_LIB_STATUS create_descriptor(cv::Mat magnitude,
-		cv::Mat phase,
-		cv::Mat& descriptor,
-		DescriptorCallback* callback);
+//	GHOG_LIB_STATUS classify(cv::Mat img,
+//		ClassifyCallback* callback);
+//
+//	bool classify_sync(cv::Mat img);
 
-	void create_descriptor_sync(cv::Mat magnitude,
-		cv::Mat phase,
-		cv::Mat& descriptor);
-
-	GHOG_LIB_STATUS classify(cv::Mat img,
-		ClassifyCallback* callback);
-
-	bool classify_sync(cv::Mat img);
-
-	GHOG_LIB_STATUS locate(cv::Mat img,
-		cv::Rect roi,
-		cv::Size window_size,
-		cv::Size window_stride,
-		LocateCallback* callback);
-
-	std::vector< cv::Rect > locate_sync(cv::Mat img,
-		cv::Rect roi,
-		cv::Size window_size,
-		cv::Size window_stride);
-
-	void load_settings(std::string filename);
-
-	void set_classifier(IClassifier* classifier);
-
-	GHOG_LIB_STATUS set_param(std::string param,
-		std::string value);
-	std::string get_param(std::string param);
+//	GHOG_LIB_STATUS locate(cv::Mat img,
+//		cv::Rect roi,
+//		cv::Size window_size,
+//		cv::Size window_stride,
+//		LocateCallback* callback);
+//
+//	std::vector< cv::Rect > locate_sync(cv::Mat img,
+//		cv::Rect roi,
+//		cv::Size window_size,
+//		cv::Size window_stride);
 
 protected:
-	void image_normalization_async(cv::Mat& image,
-		ImageCallback* callback);
-
-	void calc_gradient_async(cv::Mat input_img,
-		cv::Mat& magnitude,
-		cv::Mat& phase,
-		GradientCallback* callback);
-
-	void create_descriptor_async(cv::Mat magnitude,
-		cv::Mat phase,
-		cv::Mat& descriptor,
-		DescriptorCallback* callback);
-
-	void classify_async(cv::Mat img,
-		ClassifyCallback* callback);
-
-	void locate_async(cv::Mat img,
-		cv::Rect roi,
-		cv::Size window_size,
-		cv::Size window_stride,
-		LocateCallback* callback);
-
-	void calc_histogram(cv::Mat magnitude,
+	virtual void calc_histogram(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat histogram);
-
-	std::string get_module(std::string param_name);
-
-	Settings _settings;
-
-	IClassifier* _classifier;
-
-	int _num_bins;
-	cv::Size _cell_size; // In number of pixels
-	cv::Size _block_size; // In number of cells
+	//std::string get_module(std::string param_name);
 };
 
 } /* namespace lib */
