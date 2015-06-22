@@ -12,7 +12,7 @@ namespace ghog
 namespace lib
 {
 
-cv::Size divide_with_remainder(cv::Size numerator,
+cv::Size Utils::partition(cv::Size numerator,
 	cv::Size denominator)
 {
 	cv::Size ret;

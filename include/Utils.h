@@ -8,6 +8,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <opencv2/core/core.hpp>
+
 namespace ghog
 {
 namespace lib
