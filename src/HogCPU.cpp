@@ -265,20 +265,61 @@ std::vector< cv::Rect > HogCPU::locate_sync(cv::Mat img,
 
 void HogCPU::load_settings(std::string filename)
 {
-	_img_resize.width = _settings.load_int("Hog",
-		"CLASSIFICATION_IMAGE_HEIGHT");
-	_img_resize.width = _settings.load_int("Hog", "CLASSIFICATION_IMAGE_WIDTH");
-
 	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
 	_block_size.width = _settings.load_int(std::string("Descriptor"),
 		"BLOCK_SIZE_COLS");
 	_block_size.height = _settings.load_int(std::string("Descriptor"),
 		"BLOCK_SIZE_ROWS");
+	_cell_size.width = _settings.load_int(std::string("Descriptor"),
+		"CELL_SIZE_COLS");
+	_cell_size.height = _settings.load_int(std::string("Descriptor"),
+		"CELL_SIZE_ROWS");
 }
 
 void HogCPU::set_classifier(IClassifier* classifier)
 {
 	_classifier = classifier;
+}
+
+GHOG_LIB_STATUS HogCPU::set_param(std::string param,
+	std::string value)
+{
+	std::string module = get_module(param);
+	if(module == "NULL")
+	{
+		return GHOG_LIB_STATUS_INVALID_PARAMETER_NAME;
+	}
+	_settings.save(module, param, value.c_str());
+	return GHOG_LIB_STATUS_OK;
+}
+
+std::string HogCPU::get_param(std::string param)
+{
+	std::string module = get_module(param);
+	if (module == "NULL")
+	{
+		return "Invalid parameter name.";
+	} else
+	{
+		return _settings.load_str(module, param);
+	}
+}
+
+std::string HogCPU::get_module(std::string param_name)
+{
+	if((param_name == "CELL_SIZE_COLS") || (param_name == "CELL_SIZE_ROWS")
+		|| (param_name == "BLOCK_SIZE_COLS")
+		|| (param_name == "BLOCK_SIZE_ROWS")
+		|| (param_name == "NUMBER_OF_BINS"))
+	{
+		return "Descriptor";
+	} else if((param_name == "TYPE") || (param_name == "FILENAME"))
+	{
+		return "Classifier";
+	} else
+	{
+		return "NULL";
+	}
 }
 
 } /* namespace lib */

@@ -104,6 +104,8 @@ protected:
 		cv::Mat phase,
 		cv::Mat histogram);
 
+	std::string get_module(std::string param_name);
+
 	Settings _settings;
 
 	IClassifier* _classifier;
