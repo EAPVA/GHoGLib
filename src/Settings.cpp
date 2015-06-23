@@ -7,6 +7,8 @@
 
 #include <include/Settings.h>
 
+#include <include/GHogLibConstants.inc>
+
 namespace ghog
 {
 namespace lib
@@ -65,16 +67,25 @@ void Settings::save_file()
 void Settings::save_default_settings(std::string filename)
 {
 	tinyxml2::XMLDocument doc;
-//	tinyxml2::XMLElement* hog_module = doc.NewElement("Hog");
-//	hog_module->SetAttribute("CLASSIFICATION_IMAGE_HEIGHT", 32);
-//	hog_module->SetAttribute("CLASSIFICATION_IMAGE_WIDTH", 32);
-//	doc.InsertEndChild(hog_module);
 	tinyxml2::XMLElement* descriptor_module = doc.NewElement("Descriptor");
-	descriptor_module->SetAttribute("CELL_SIZE_COLS", 6);
-	descriptor_module->SetAttribute("CELL_SIZE_ROWS", 6);
-	descriptor_module->SetAttribute("BLOCK_SIZE_COLS", 2);
-	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS", 2);
-	descriptor_module->SetAttribute("NUMBER_OF_BINS", 9);
+	descriptor_module->SetAttribute("NUMBER_OF_BINS",
+		GHOG_LIB_DEFAULT_NUM_BINS);
+	descriptor_module->SetAttribute("CELL_SIZE_COLS",
+		GHOG_LIB_DEFAULT_CELL_SIZE.width);
+	descriptor_module->SetAttribute("CELL_SIZE_ROWS",
+		GHOG_LIB_DEFAULT_CELL_SIZE.height);
+	descriptor_module->SetAttribute("BLOCK_SIZE_COLS",
+		GHOG_LIB_DEFAULT_BLOCK_SIZE.width);
+	descriptor_module->SetAttribute("BLOCK_SIZE_ROWS",
+		GHOG_LIB_DEFAULT_BLOCK_SIZE.height);
+	descriptor_module->SetAttribute("BLOCK_STRIDE_COLS",
+		GHOG_LIB_DEFAULT_BLOCK_STRIDE.width);
+	descriptor_module->SetAttribute("BLOCK_STRIDE_ROWS",
+		GHOG_LIB_DEFAULT_BLOCK_STRIDE.height);
+	descriptor_module->SetAttribute("CELL_GRID_COLS",
+		GHOG_LIB_DEFAULT_WIN_SIZE.width);
+	descriptor_module->SetAttribute("CELL_GRID_ROWS",
+		GHOG_LIB_DEFAULT_WIN_SIZE.height);
 	doc.InsertEndChild(descriptor_module);
 	tinyxml2::XMLElement* classifier_module = doc.NewElement("Classifier");
 	classifier_module->SetAttribute("TYPE", "MLP");
