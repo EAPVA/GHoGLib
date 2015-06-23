@@ -11,60 +11,55 @@
 #include <vector>
 #include <string>
 
+#include <include/HogCallbacks.h>
 #include <include/IClassifier.h>
 #include <include/Settings.h>
-#include <include/IHog.h>
 
 namespace ghog
 {
 namespace lib
 {
 
-class HogDescriptor: public IHog
+class HogDescriptor
 {
 public:
 	HogDescriptor(std::string settings_file);
-	~HogDescriptor();
+	virtual ~HogDescriptor();
 
-	void alloc_buffer(cv::Size buffer_size,
+	virtual void alloc_buffer(cv::Size buffer_size,
 		int type,
 		cv::Mat& buffer);
 
-	GHOG_LIB_STATUS image_normalization(cv::Mat& image,
+	virtual GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
+	virtual void image_normalization_sync(cv::Mat& image);
 
-	void image_normalization_sync(cv::Mat& image);
-
-	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
+	virtual GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase,
 		GradientCallback* callback);
-
-	void calc_gradient_sync(cv::Mat input_img,
+	virtual void calc_gradient_sync(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase);
 
-	GHOG_LIB_STATUS create_descriptor(cv::Mat magnitude,
+	virtual GHOG_LIB_STATUS create_descriptor(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat& descriptor,
 		DescriptorCallback* callback);
-
-	void create_descriptor_sync(cv::Mat magnitude,
+	virtual void create_descriptor_sync(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat& descriptor);
 
-	GHOG_LIB_STATUS classify(cv::Mat img,
+	virtual GHOG_LIB_STATUS classify(cv::Mat img,
 		ClassifyCallback* callback);
+	virtual bool classify_sync(cv::Mat img);
 
-	bool classify_sync(cv::Mat img);
-
-	GHOG_LIB_STATUS locate(cv::Mat img,
+	virtual GHOG_LIB_STATUS locate(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride,
 		LocateCallback* callback);
-
-	std::vector< cv::Rect > locate_sync(cv::Mat img,
+	virtual std::vector< cv::Rect > locate_sync(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride);
@@ -76,6 +71,8 @@ public:
 	GHOG_LIB_STATUS set_param(std::string param,
 		std::string value);
 	std::string get_param(std::string param);
+
+	int get_descriptor_size();
 
 protected:
 	void image_normalization_async(cv::Mat& image,
@@ -100,11 +97,11 @@ protected:
 		cv::Size window_stride,
 		LocateCallback* callback);
 
-	virtual void calc_histogram(cv::Mat magnitude,
+	void calc_histogram(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat cell_histogram);
 
-	virtual void normalize_blocks(cv::Mat& descriptor);
+	void normalize_blocks(cv::Mat& descriptor);
 
 	std::string get_module(std::string param_name);
 
@@ -113,9 +110,11 @@ protected:
 	IClassifier* _classifier;
 
 	int _num_bins;
+	cv::Size _cell_size; //In number of pixels
 	cv::Size _block_size; //In number of cells
 	cv::Size _block_stride; //In number of cells
-	cv::Size _cell_size; //In number of pixels
+	cv::Size _cell_grid; //In number of cells
+	cv::Size _window_size; //In number of pixels
 };
 
 } /* namespace lib */

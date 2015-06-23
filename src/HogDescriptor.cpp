@@ -112,60 +112,42 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat& descriptor)
 {
-	//TODO: verify that magnitude and phase have same size and type.
+	//TODO: verify that magnitude and phase have correct size and type.
 	//TODO: verify that the descriptor has correct size and type
 	//TODO: possibly preallocate histograms auxiliary matrix
 
-	cv::Size cell_grid = Utils::partition(magnitude.size(), _cell_size);
-	cv::Mat histograms[cell_grid.height];
+	cv::Mat histograms[_cell_grid.height];
 	cv::Size block_grid(
-		((cell_grid.width - _block_size.width) / _block_stride.width) + 1,
-		((cell_grid.height - _block_size.height) / _block_stride.height) + 1);
-	int total_cells = cell_grid.width * cell_grid.height;
-	int total_blocks = block_grid.width * block_grid.height;
+		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
+		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
 	int cells_per_block = _block_size.width * _block_size.height;
-	int total_histograms = total_blocks * cells_per_block;
-	int total_outputs = total_histograms * _num_bins;
-	cv::Size histograms_size(_num_bins, cell_grid.width);
-	for(int i = 0; i < cell_grid.height; ++i)
+	cv::Size histograms_size(_num_bins, _cell_grid.width);
+	for(int i = 0; i < _cell_grid.height; ++i)
 	{
 		alloc_buffer(histograms_size, CV_32FC1, histograms[i]);
 	}
 	int top_row = 0, bottom_row = 0, left_col = 0, right_col = 0;
-	int extra_rows = magnitude.rows % cell_grid.height;
-	int extra_cols = magnitude.cols % cell_grid.width;
 
-	for(int i = 0; i < cell_grid.height; ++i)
+	for(int i = 0; i < _cell_grid.height; ++i)
 	{
 		bottom_row = top_row + _cell_size.height;
-		if(extra_rows > 0)
-		{
-			extra_rows--;
-			bottom_row++;
-		}
 		cv::Mat mag_aux = magnitude.rowRange(top_row, bottom_row);
 		cv::Mat phase_aux = phase.rowRange(top_row, bottom_row);
-		for(int j = 0; j < cell_grid.width; ++j)
+		for(int j = 0; j < _cell_grid.width; ++j)
 		{
 			right_col = left_col + _cell_size.width;
-			if(extra_cols > 0)
-			{
-				extra_cols--;
-				right_col++;
-			}
 			//Each element of the array histograms contains a ROW of the cell grid.
 			//Each ROW of each element corresponds to a COLUMN of the cell grid.
 			calc_histogram(mag_aux.colRange(left_col, right_col),
 				phase_aux.colRange(left_col, right_col), histograms[i].row(j));
 			left_col = right_col;
 		}
-		extra_cols = magnitude.cols % cell_grid.width;
+		left_col = 0;
 		top_row = bottom_row;
 	}
 
 	left_col = 0;
-	int col_stride = _num_bins * cells_per_block;
-	right_col += col_stride;
+	right_col = _num_bins;
 
 	int block_posx = 0;
 	int block_posy = 0;
@@ -181,7 +163,7 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 					histograms[block_posy + k].row(block_posx + l).copyTo(
 						descriptor.colRange(left_col, right_col));
 					left_col = right_col;
-					right_col += col_stride;
+					right_col = left_col + _num_bins;
 				}
 			}
 			block_posx += _block_stride.width;
@@ -189,7 +171,6 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 		block_posy += _block_stride.height;
 		block_posx = 0;
 	}
-
 }
 
 void HogDescriptor::calc_histogram(cv::Mat magnitude,
@@ -319,14 +300,24 @@ std::vector< cv::Rect > HogDescriptor::locate_sync(cv::Mat img,
 void HogDescriptor::load_settings(std::string filename)
 {
 	_num_bins = _settings.load_int(std::string("Descriptor"), "NUMBER_OF_BINS");
-	_block_size.width = _settings.load_int(std::string("Descriptor"),
-		"BLOCK_SIZE_COLS");
-	_block_size.height = _settings.load_int(std::string("Descriptor"),
-		"BLOCK_SIZE_ROWS");
 	_cell_size.width = _settings.load_int(std::string("Descriptor"),
 		"CELL_SIZE_COLS");
 	_cell_size.height = _settings.load_int(std::string("Descriptor"),
 		"CELL_SIZE_ROWS");
+	_block_size.width = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_COLS");
+	_block_size.height = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_SIZE_ROWS");
+	_block_stride.width = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_STRIDE_COLS");
+	_block_stride.height = _settings.load_int(std::string("Descriptor"),
+		"BLOCK_STRIDE_ROWS");
+	_cell_grid.width = _settings.load_int(std::string("Descriptor"),
+		"CELL_GRID_COLS");
+	_cell_grid.height = _settings.load_int(std::string("Descriptor"),
+		"CELL_GRID_ROWS");
+	_window_size.height = _cell_grid.height * _cell_size.height;
+	_window_size.width = _cell_grid.width * _cell_size.width;
 }
 
 void HogDescriptor::set_classifier(IClassifier* classifier)
@@ -373,6 +364,15 @@ std::string HogDescriptor::get_module(std::string param_name)
 	{
 		return "NULL";
 	}
+}
+
+int HogDescriptor::get_descriptor_size()
+{
+	cv::Size block_grid(
+		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
+		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
+	return block_grid.height * block_grid.width * _block_size.height
+		* _block_size.width * _num_bins;
 }
 
 } /* namespace lib */
