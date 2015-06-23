@@ -103,112 +103,84 @@ void HogGPU::calc_gradient_sync(cv::Mat input_img,
 	cudaDeviceSynchronize();
 }
 
-void HogGPU::calc_histogram(cv::Mat magnitude,
+GHOG_LIB_STATUS HogGPU::create_descriptor(cv::Mat magnitude,
 	cv::Mat phase,
-	cv::Mat histogram)
+	cv::Mat& descriptor,
+	DescriptorCallback* callback)
 {
-	float bin_size = 360.0f / (float)_num_bins;
-
-	int left_bin, right_bin;
-	float delta;
-
-	float mag_total = 0.0f;
-
-	for(int i = 0; i < magnitude.rows; ++i)
-	{
-		for(int j = 0; j < magnitude.cols; ++j)
-		{
-			if(magnitude.at< float >(i, j) > 0)
-			{
-				left_bin = (int)floor(
-					(phase.at< float >(i, j) - bin_size / 2.0f) / bin_size);
-				if(left_bin < 0)
-					left_bin += _num_bins;
-				right_bin = (left_bin + 1) % _num_bins;
-
-				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
-				if(right_bin == 0)
-					delta -= _num_bins;
-
-				histogram.at< float >(left_bin) += (0.5 - delta)
-					* magnitude.at< float >(i, j);
-				histogram.at< float >(right_bin) += (0.5 + delta)
-					* magnitude.at< float >(i, j);
-				mag_total += magnitude.at< float >(i, j);
-			}
-		}
-	}
-
-	for(int i = 0; i < _num_bins; ++i)
-	{
-		histogram.at< float >(i) /= mag_total;
-	}
+	boost::thread(&HogGPU::create_descriptor_async, this, magnitude, phase,
+		descriptor, callback).detach();
+	return GHOG_LIB_STATUS_OK;
 }
 
-void HogDescriptor::normalize_blocks(cv::Mat& descriptor)
+void HogGPU::create_descriptor_sync(cv::Mat magnitude,
+	cv::Mat phase,
+	cv::Mat& descriptor)
 {
-	int cells_per_block = _block_size.height * _block_size.width;
-	int elements_per_block = cells_per_block * _num_bins;
+	//TODO: verify that magnitude and phase have correct size and type.
+	//TODO: verify that the descriptor has correct size and type
+	//TODO: possibly preallocate histograms auxiliary matrix
 
-	for(int i = 0; i < descriptor.cols; i += elements_per_block)
+	cv::Size hog_block_grid(
+		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
+		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
+
+	dim3 block_size(8, 8);
+	dim3 grid_size;
+	grid_size.x = _cell_grid.width / block_size.x;
+	grid_size.y = _cell_grid.height / block_size.y;
+
+	if(_cell_grid.width % block_size.x)
 	{
-		float L1_norm = 0.0f;
-		for(int j = 0; j < elements_per_block; ++j)
-		{
-			L1_norm += descriptor.at< float >(i + j);
-		}
-		for(int j = 0; j < elements_per_block; ++j)
-		{
-			descriptor.at< float >(i + j) = sqrt(
-				descriptor.at< float >(i + j) / L1_norm);
-		}
+		grid_size.x++;
 	}
-}
+	if(_cell_grid.height % block_size.y)
+	{
+		grid_size.y++;
+	}
 
-//GHOG_LIB_STATUS HogGPU::classify(cv::Mat img,
-//	ClassifyCallback* callback)
-//{
-//	boost::thread(&HogGPU::classify_async, this, img, callback).detach();
-//	return GHOG_LIB_STATUS_OK;
-//}
-//
-//bool HogGPU::classify_sync(cv::Mat img)
-//{
-//	bool ret = false;
-//	cv::Mat resized;
-//	image_normalization_sync(img);
-//	cv::Mat grad_mag;
-//	cv::Mat grad_phase;
-//	calc_gradient_sync(img, grad_mag, grad_phase);
-//	cv::Mat descriptor;
-//	create_descriptor_sync(grad_mag, grad_phase, descriptor);
-//	cv::Mat output = _classifier->classify_sync(descriptor);
-//	if(output.at< float >(0) > 0)
-//	{
-//		ret = true;
-//	}
-//	return ret;
-//}
-//
-//GHOG_LIB_STATUS HogGPU::locate(cv::Mat img,
-//	cv::Rect roi,
-//	cv::Size window_size,
-//	cv::Size window_stride,
-//	LocateCallback* callback)
-//{
-//	boost::thread(&HogGPU::locate_async, this, img, roi, window_size,
-//		window_stride, callback).detach();
-//	return GHOG_LIB_STATUS_OK;
-//}
-//
-//std::vector< cv::Rect > HogGPU::locate_sync(cv::Mat img,
-//	cv::Rect roi,
-//	cv::Size window_size,
-//	cv::Size window_stride)
-//{
-//	std::vector< cv::Rect > ret;
-//	return ret;
-//}
+	float* magnitude_ptr = magnitude.ptr< float >(0);
+	float* phase_ptr = phase.ptr< float >(0);
+	float* descriptor_ptr = descriptor.ptr< float >(0);
+
+	float* device_magnitude;
+	float* device_phase;
+	float* device_descriptor;
+
+	cudaHostGetDevicePointer(&device_magnitude, magnitude_ptr, 0);
+	cudaHostGetDevicePointer(&device_phase, phase_ptr, 0);
+	cudaHostGetDevicePointer(&device_descriptor, descriptor_ptr, 0);
+
+	float* device_histograms;
+	int cell_row_step = _cell_grid.width * _num_bins;
+
+	cudaMalloc((void**)&device_histograms,
+		(_cell_grid.height * cell_row_step * sizeof(float)));
+
+	histogram_kernel<<<grid_size, block_size>>>(device_magnitude, device_phase,
+		device_histograms, _cell_grid.width, _cell_grid.height,
+		magnitude.step1(), phase.step1(), cell_row_step, _cell_size.width,
+		_cell_size.height, _num_bins);
+
+	grid_size.x = _cell_grid.width / block_size.x;
+	grid_size.y = _cell_grid.height / block_size.y;
+
+	if(_cell_grid.width % block_size.x)
+	{
+		grid_size.x++;
+	}
+	if(_cell_grid.height % block_size.y)
+	{
+		grid_size.y++;
+	}
+
+	cudaDeviceSynchronize();
+	block_normalization_kernel<<<grid_size, block_size>>>(device_histograms,
+		device_descriptor, hog_block_grid.width, hog_block_grid.height,
+		_block_size.width, _block_size.height, _num_bins, _cell_grid.width,
+		_block_stride.width, _block_stride.height);
+	cudaDeviceSynchronize();
+}
 
 } /* namespace lib */
 } /* namespace ghog */

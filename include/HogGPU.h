@@ -32,39 +32,23 @@ public:
 
 	GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
-
 	void image_normalization_sync(cv::Mat& image);
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase,
 		GradientCallback* callback);
-
 	void calc_gradient_sync(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase);
 
-//	GHOG_LIB_STATUS classify(cv::Mat img,
-//		ClassifyCallback* callback);
-//
-//	bool classify_sync(cv::Mat img);
-
-//	GHOG_LIB_STATUS locate(cv::Mat img,
-//		cv::Rect roi,
-//		cv::Size window_size,
-//		cv::Size window_stride,
-//		LocateCallback* callback);
-//
-//	std::vector< cv::Rect > locate_sync(cv::Mat img,
-//		cv::Rect roi,
-//		cv::Size window_size,
-//		cv::Size window_stride);
-
-protected:
-	virtual void calc_histogram(cv::Mat magnitude,
+	virtual GHOG_LIB_STATUS create_descriptor(cv::Mat magnitude,
 		cv::Mat phase,
-		cv::Mat histogram);
-	//std::string get_module(std::string param_name);
+		cv::Mat& descriptor,
+		DescriptorCallback* callback);
+	virtual void create_descriptor_sync(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor);
 };
 
 } /* namespace lib */
