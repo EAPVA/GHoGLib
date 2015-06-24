@@ -125,7 +125,7 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
 		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
 
-	dim3 block_size(64, 1);
+	dim3 block_size(8, 8);
 	dim3 grid_size;
 	grid_size.x = _cell_grid.width / block_size.x;
 	grid_size.y = _cell_grid.height / block_size.y;
