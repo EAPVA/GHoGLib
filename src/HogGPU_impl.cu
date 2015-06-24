@@ -20,16 +20,28 @@ __global__ void gradient_kernel(float* input_img,
 		return;
 	}
 
-	int in_pixel_idx = pixel_y * input_image_step + pixel_x;
+	int in_pixel_idx = pixel_y * input_image_step + pixel_x * 3;
 	int mag_pixel_idx = pixel_y * magnitude_step + pixel_x;
 	int phase_pixel_idx = pixel_y * phase_step + pixel_x;
 
-	float dx = input_img[in_pixel_idx + 1] - input_img[in_pixel_idx - 1];
-	float dy = input_img[in_pixel_idx + input_image_step]
-		- input_img[in_pixel_idx - input_image_step];
+	float dx, dy;
+	float mag_max = 0.0f;
+	float phase_max = 0.0f;
 
-	magnitude[mag_pixel_idx] = sqrt(dx * dx + dy * dy);
-	phase[phase_pixel_idx] = atan2(dy, dx);
+	for(int i = 0; i < 3; ++i)
+	{
+		dx = input_img[in_pixel_idx + 3] - input_img[in_pixel_idx - 3];
+		dy = input_img[in_pixel_idx + input_image_step]
+			- input_img[in_pixel_idx - input_image_step];
+		float mag = sqrt(dx * dx + dy * dy);;
+
+		if (mag > mag_max) {
+			phase_max = atan2(dy, dx);
+		}
+	}
+
+	magnitude[mag_pixel_idx] = mag_max;
+	phase[phase_pixel_idx] = phase_max;
 }
 
 __global__ void histogram_kernel(float* magnitude,

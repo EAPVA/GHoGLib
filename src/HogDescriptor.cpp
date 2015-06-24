@@ -83,20 +83,41 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& phase)
 {
 	//TODO: Check that all matrices have the correct size.
+
+	float* input_ptr = input_img.ptr< float >(0);
+	float* magnitude_ptr = input_img.ptr< float >(0);
+	float* phase_ptr = input_img.ptr< float >(0);
+
+	int input_row_addr = 0;
+	int magnitude_row_addr = 0;
+	int phase_row_addr = 0;
+
 	for(int i = 0; i < input_img.rows; ++i)
 	{
-		float* input_ptr = input_img.ptr< float >(i);
-		float* magnitude_ptr = input_img.ptr< float >(i);
-		float* phase_ptr = input_img.ptr< float >(i);
 		for(int j = 0; j < input_img.cols; ++j)
 		{
-			float dx = input_ptr[j + 1] - input_ptr[j - 1];
-			float dy = input_ptr[j + input_img.step1()]
-				- input_ptr[j - input_img.step1()];
+			float mag_max = 0.0f;
+			float phase_max = 0.0f;
+			float dx, dy;
+			for(int k = 0; k < 3; ++k)
+			{
+				dx = input_ptr[input_row_addr + j + k + 3]
+					- input_ptr[input_row_addr + j + k - 3];
+				dy = input_ptr[input_row_addr + j + k + input_img.step[0]]
+					- input_ptr[input_row_addr + j + k + input_img.step[0]];
 
-			magnitude_ptr[j] = sqrt(dx * dx + dy * dy);
-			phase_ptr[j] = atan2(dy, dx);
+				float mag = sqrt(dx * dx + dy * dy);
+				if(mag > mag_max)
+				{
+					mag_max = mag;
+					phase_max = atan2(dx, dy);
+				}
+			}
+
+			magnitude_ptr[j] = mag_max;
+			phase_ptr[j] = phase_max;
 		}
+		input_row_addr += input_img.step[0];
 	}
 }
 
@@ -123,9 +144,9 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat& descriptor)
 {
-	//TODO: verify that magnitude and phase have correct size and type.
-	//TODO: verify that the descriptor has correct size and type
-	//TODO: possibly preallocate histograms auxiliary matrix
+//TODO: verify that magnitude and phase have correct size and type.
+//TODO: verify that the descriptor has correct size and type
+//TODO: possibly preallocate histograms auxiliary matrix
 
 	cv::Mat histograms[_cell_grid.height];
 	cv::Size block_grid(

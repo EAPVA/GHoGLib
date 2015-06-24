@@ -159,7 +159,7 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 
 	histogram_kernel<<<grid_size, block_size>>>(device_magnitude, device_phase,
 		device_histograms, _cell_grid.width, _cell_grid.height,
-		magnitude.step1(), phase.step1(), cell_row_step, _cell_size.width,
+		magnitude.step[0], phase.step[0], cell_row_step, _cell_size.width,
 		_cell_size.height, _num_bins);
 
 	grid_size.x = _cell_grid.width / block_size.x;
