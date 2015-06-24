@@ -82,11 +82,22 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& magnitude,
 	cv::Mat& phase)
 {
-	//Store dx temporarily on magnitude matrix
-	cv::Sobel(input_img, magnitude, -1, 1, 0, 1);
-	//Store dy temporarily on phase matrix
-	cv::Sobel(input_img, phase, -1, 0, 1, 1);
-	cv::cartToPolar(magnitude, phase, magnitude, phase, true);
+	//TODO: Check that all matrices have the correct size.
+	for(int i = 0; i < input_img.rows; ++i)
+	{
+		float* input_ptr = input_img.ptr< float >(0);
+		float* magnitude_ptr = input_img.ptr< float >(0);
+		float* phase_ptr = input_img.ptr< float >(0);
+		for(int j = 0; j < input_img.cols; ++j)
+		{
+			float dx = input_ptr[j + 1] - input_ptr[j - 1];
+			float dy = input_ptr[j + input_img.step1()]
+				- input_ptr[j - input_img.step1()];
+
+			magnitude_ptr[j] = sqrt(dx * dx + dy * dy);
+			phase_ptr[j] = atan2(dy, dx);
+		}
+	}
 }
 
 GHOG_LIB_STATUS HogDescriptor::create_descriptor(cv::Mat magnitude,
@@ -124,7 +135,7 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Size histograms_size(_num_bins, _cell_grid.width);
 	for(int i = 0; i < _cell_grid.height; ++i)
 	{
-		alloc_buffer(histograms_size, CV_32FC1, histograms[i]);
+		alloc_buffer(histograms_size, CV_32FC3, histograms[i]);
 	}
 	int top_row = 0, bottom_row = 0, left_col = 0, right_col = 0;
 
