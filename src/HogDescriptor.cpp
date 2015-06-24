@@ -135,7 +135,7 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Size histograms_size(_num_bins, _cell_grid.width);
 	for(int i = 0; i < _cell_grid.height; ++i)
 	{
-		alloc_buffer(histograms_size, CV_32FC3, histograms[i]);
+		alloc_buffer(histograms_size, CV_32FC1, histograms[i]);
 	}
 	int top_row = 0, bottom_row = 0, left_col = 0, right_col = 0;
 
