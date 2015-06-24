@@ -103,8 +103,8 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 			{
 				dx = input_ptr[input_row_addr + j + k + 3]
 					- input_ptr[input_row_addr + j + k - 3];
-				dy = input_ptr[input_row_addr + j + k + input_img.step[0]]
-					- input_ptr[input_row_addr + j + k + input_img.step[0]];
+				dy = input_ptr[input_row_addr + j + k + input_img.step1()]
+					- input_ptr[input_row_addr + j + k + input_img.step1()];
 
 				float mag = sqrt(dx * dx + dy * dy);
 				if(mag > mag_max)
@@ -117,7 +117,7 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 			magnitude_ptr[j] = mag_max;
 			phase_ptr[j] = phase_max;
 		}
-		input_row_addr += input_img.step[0];
+		input_row_addr += input_img.step1();
 	}
 }
 
