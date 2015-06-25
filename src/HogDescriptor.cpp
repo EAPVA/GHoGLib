@@ -104,7 +104,7 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 				if(mag > mag_max)
 				{
 					mag_max = mag;
-					phase_max = atan2(dx, dy);
+					phase_max = atan2(dy, dx);
 				}
 			}
 
