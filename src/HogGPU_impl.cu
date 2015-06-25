@@ -1,5 +1,7 @@
 #include "HogGPU_impl.cuh"
 
+#include "math_constants.h"
+
 __global__ void gradient_kernel(float* input_img,
 	float* magnitude,
 	float* phase,
@@ -37,7 +39,8 @@ __global__ void gradient_kernel(float* input_img,
 
 		if (mag > mag_max) {
 			mag_max = mag;
-			phase_max = atan2(dy, dx);
+			phase_max = (atan2(dy, dx) + CUDART_PI_F)
+							/ (2 * CUDART_PI_F);
 		}
 	}
 
@@ -77,7 +80,7 @@ __global__ void histogram_kernel(float* magnitude,
 	int i, j;
 
 	float delta = 0.0f;
-	float bin_size = 360.0f / (float)num_bins;
+	float bin_size = 1.0f / (float)num_bins;
 	float mag_total = 0;
 
 	for(i = 0; i < cell_height; ++i)

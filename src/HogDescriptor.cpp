@@ -7,6 +7,8 @@
 
 #include <include/HogDescriptor.h>
 
+#include "math_constants.h"
+
 #include <boost/thread.hpp>
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -104,7 +106,8 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 				if(mag > mag_max)
 				{
 					mag_max = mag;
-					phase_max = atan2(dy, dx);
+					phase_max = (atan2(dy, dx) + CUDART_PI_F)
+						/ (2 * CUDART_PI_F);
 				}
 			}
 
@@ -202,7 +205,7 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat cell_histogram)
 {
-	float bin_size = 360.0f / (float)_num_bins;
+	float bin_size = 1.0f / (float)_num_bins;
 
 	int left_bin, right_bin;
 	float delta;
