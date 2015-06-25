@@ -107,7 +107,7 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 				{
 					mag_max = mag;
 					phase_max = (atan2(dy, dx) + CUDART_PI_F)
-						/ (2 * CUDART_PI_F);
+						/ (2.0f * CUDART_PI_F);
 				}
 			}
 

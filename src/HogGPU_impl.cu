@@ -40,7 +40,7 @@ __global__ void gradient_kernel(float* input_img,
 		if (mag > mag_max) {
 			mag_max = mag;
 			phase_max = (atan2(dy, dx) + CUDART_PI_F)
-							/ (2 * CUDART_PI_F);
+							/ (2.0f * CUDART_PI_F);
 		}
 	}
 
