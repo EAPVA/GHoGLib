@@ -35,12 +35,12 @@ __global__ void gradient_kernel(float* input_img,
 		dx = input_img[in_pixel_idx + 3] - input_img[in_pixel_idx - 3];
 		dy = input_img[in_pixel_idx + input_image_step]
 			- input_img[in_pixel_idx - input_image_step];
-		float mag = sqrt(dx * dx + dy * dy);;
+		float mag = sqrt(dx * dx + dy * dy);
 
-		if (mag > mag_max) {
+		if(mag > mag_max)
+		{
 			mag_max = mag;
-			phase_max = (atan2(dy, dx) + CUDART_PI_F)
-							/ (2.0f * CUDART_PI_F);
+			phase_max = (atan2(dy, dx) + CUDART_PI_F) / (2.0f * CUDART_PI_F);
 		}
 	}
 
@@ -164,8 +164,10 @@ __global__ void block_normalization_kernel(float* histograms,
 		}
 	}
 
+	L1_norm += 0.01;
+
 	for(i = 0; i < elements_per_block; ++i)
 	{
-		descriptor[block_pos + i] /= L1_norm;
+		descriptor[block_pos + i] /= sqrt(descriptor[block_pos + i] / L1_norm);
 	}
 }

@@ -255,6 +255,7 @@ void HogDescriptor::normalize_blocks(cv::Mat& descriptor)
 		{
 			L1_norm += descriptor.at< float >(i + j);
 		}
+		L1_norm += 0.01;
 		for(int j = 0; j < elements_per_block; ++j)
 		{
 			descriptor.at< float >(i + j) = sqrt(
