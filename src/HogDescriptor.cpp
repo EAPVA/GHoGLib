@@ -96,7 +96,7 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 			float dx, dy;
 			for(int k = 0; k < 3; ++k)
 			{
-				dx = input_ptr[3 * j + k + 3] - input_ptr[j + k - 3];
+				dx = input_ptr[3 * j + k + 3] - input_ptr[3 * j + k - 3];
 				dy = input_ptr[3 * j + k + input_img.step1()]
 					- input_ptr[3 * j + k - input_img.step1()];
 
