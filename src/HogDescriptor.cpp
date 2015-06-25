@@ -84,16 +84,11 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 {
 	//TODO: Check that all matrices have the correct size.
 
-	float* input_ptr = input_img.ptr< float >(0);
-	float* magnitude_ptr = magnitude.ptr< float >(0);
-	float* phase_ptr = phase.ptr< float >(0);
-
-	int input_row_addr = 0;
-	int magnitude_row_addr = 0;
-	int phase_row_addr = 0;
-
 	for(int i = 0; i < input_img.rows; ++i)
 	{
+		float* input_ptr = input_img.ptr< float >(i);
+			float* magnitude_ptr = magnitude.ptr< float >(i);
+			float* phase_ptr = phase.ptr< float >(i);
 		for(int j = 0; j < input_img.cols; ++j)
 		{
 			float mag_max = 0.0f;
@@ -101,10 +96,10 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 			float dx, dy;
 			for(int k = 0; k < 3; ++k)
 			{
-				dx = input_ptr[input_row_addr + j + k + 3]
-					- input_ptr[input_row_addr + j + k - 3];
-				dy = input_ptr[input_row_addr + j + k + input_img.step1()]
-					- input_ptr[input_row_addr + j + k + input_img.step1()];
+				dx = input_ptr[j + k + 3]
+					- input_ptr[j + k - 3];
+				dy = input_ptr[j + k + input_img.step1()]
+					- input_ptr[j + k + input_img.step1()];
 
 				float mag = sqrt(dx * dx + dy * dy);
 				if(mag > mag_max)
@@ -117,7 +112,6 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 			magnitude_ptr[j] = mag_max;
 			phase_ptr[j] = phase_max;
 		}
-		input_row_addr += input_img.step1();
 	}
 }
 
