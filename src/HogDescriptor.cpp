@@ -84,10 +84,6 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 {
 	//TODO: Check that all matrices have the correct size.
 
-	std::cout << "Image size: " << input_img.size() << std::endl;
-	std::cout << "Magnitude size: " << magnitude.size() << std::endl;
-	std::cout << "Phase size: " << phase.size() << std::endl;
-
 	for(int i = 0; i < input_img.rows; ++i)
 	{
 		float* input_ptr = input_img.ptr< float >(i);
