@@ -36,6 +36,7 @@ __global__ void gradient_kernel(float* input_img,
 		float mag = sqrt(dx * dx + dy * dy);;
 
 		if (mag > mag_max) {
+			mag_max = mag;
 			phase_max = atan2(dy, dx);
 		}
 	}
