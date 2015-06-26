@@ -162,6 +162,17 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 		magnitude.step1(), phase.step1(), cell_row_step, _cell_size.width,
 		_cell_size.height, _num_bins);
 
+	float * histograms;
+	cudaMemcpy(histograms, device_histograms,
+		(_cell_grid.height * cell_row_step * sizeof(float)),
+		cudaMemcpyDeviceToHost);
+
+	for (int i = 0; i < _cell_grid.height * cell_row_step; ++i) {
+		if (std::fpclassify(histograms[i]) == FP_NAN) {
+			std::cout << "NAN on histograms[" << i << "]" << std::endl;
+		}
+	}
+
 	grid_size.x = _cell_grid.width / block_size.x;
 	grid_size.y = _cell_grid.height / block_size.y;
 
