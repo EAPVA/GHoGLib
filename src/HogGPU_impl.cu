@@ -101,6 +101,10 @@ __global__ void histogram_kernel(float* magnitude,
 			right_bin = (left_bin + 1);
 
 			delta = (phase[phase_pixel_idx + j] / bin_size) - right_bin;
+			if(delta > 0)
+			{
+				delta += _num_bins;
+			}
 
 			//Fix range for right_bin
 			right_bin = right_bin % num_bins;
@@ -174,9 +178,9 @@ __global__ void block_normalization_kernel(float* histograms,
 
 	L1_norm += 0.01;
 
-//	for(i = 0; i < elements_per_block; ++i)
-//	{
-//		descriptor[block_out_pos + i] = sqrt(
-//			descriptor[block_out_pos + i] / L1_norm);
-//	}
+	for(i = 0; i < elements_per_block; ++i)
+	{
+		descriptor[block_out_pos + i] = sqrt(
+			descriptor[block_out_pos + i] / L1_norm);
+	}
 }
