@@ -103,7 +103,7 @@ __global__ void histogram_kernel(float* magnitude,
 			delta = (phase[phase_pixel_idx + j] / bin_size) - right_bin;
 			if(delta > 0)
 			{
-				delta += _num_bins;
+				delta += num_bins;
 			}
 
 			//Fix range for right_bin

@@ -231,6 +231,9 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 
 				//Might be outside the range. First use on the formula below, then fix the range.
 				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
+				if (delta > 0) {
+					delta += _num_bins;
+				}
 
 				//Fix range for right_bin
 				right_bin = right_bin % _num_bins;
