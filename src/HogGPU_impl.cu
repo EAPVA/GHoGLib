@@ -145,8 +145,8 @@ __global__ void block_normalization_kernel(float* histograms,
 	}
 	int block_idx = block_y * block_grid_width + block_x;
 	int elements_per_block = block_width * block_height * num_bins;
-	int block_pos = block_idx * elements_per_block;
-	int block_pos_delta = 0;
+	int block_out_pos = block_idx * elements_per_block;
+	int block_out_pos_delta = 0;
 
 	int cell_x = block_x * block_stride_x;
 	int cell_y = block_y * block_stride_y;
@@ -165,9 +165,9 @@ __global__ void block_normalization_kernel(float* histograms,
 			for(k = 0; k < num_bins; ++k)
 			{
 				L1_norm += histograms[hist_pos + k];
-				descriptor[block_pos + block_pos_delta] = histograms[hist_pos
-					+ k];
-				block_pos_delta++;
+				descriptor[block_out_pos + block_out_pos_delta] =
+					histograms[hist_pos + k];
+				block_out_pos_delta++;
 			}
 		}
 	}
@@ -176,6 +176,7 @@ __global__ void block_normalization_kernel(float* histograms,
 
 	for(i = 0; i < elements_per_block; ++i)
 	{
-		descriptor[block_pos + i] /= sqrt(descriptor[block_pos + i] / L1_norm);
+		descriptor[block_out_pos + i] = sqrt(
+			descriptor[block_out_pos + i] / L1_norm);
 	}
 }
