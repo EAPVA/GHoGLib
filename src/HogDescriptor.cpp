@@ -58,7 +58,17 @@ void HogDescriptor::image_normalization_async(cv::Mat& image,
 
 void HogDescriptor::image_normalization_sync(cv::Mat& image)
 {
-	//TODO
+	for(int i = 0; i < image.rows; ++i)
+	{
+		float* input_ptr = image.ptr< float >(i);
+		for(int j = 0; j < image.cols; ++j)
+		{
+			for (int k = 0; k < 3; ++k)
+			{
+				input_ptr[3 * j + k] = sqrt(input_ptr[3 * j + k]);
+			}
+		}
+	}
 }
 
 GHOG_LIB_STATUS HogDescriptor::calc_gradient(cv::Mat input_img,
@@ -231,7 +241,8 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 
 				//Might be outside the range. First use on the formula below, then fix the range.
 				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
-				if (delta < -0.5) {
+				if(delta < -0.5)
+				{
 					delta += _num_bins;
 				}
 

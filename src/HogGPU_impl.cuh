@@ -8,7 +8,10 @@
 #ifndef HOGGPU_IMPL_CUH_
 #define HOGGPU_IMPL_CUH_
 
-#include <opencv2/gpu/gpu.hpp>
+__global__ void gamma_norm_kernel(float* img,
+	int image_height,
+	int image_width,
+	int image_step);
 
 __global__ void gradient_kernel(float* input_img,
 	float* magnitude,

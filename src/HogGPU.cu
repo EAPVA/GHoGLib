@@ -54,7 +54,26 @@ GHOG_LIB_STATUS HogGPU::image_normalization(cv::Mat& image,
 
 void HogGPU::image_normalization_sync(cv::Mat& image)
 {
-	//TODO
+	dim3 block_size(3, 8, 8);
+	dim3 grid_size;
+	grid_size.x = image.cols / block_size.y;
+	grid_size.y = image.rows / block_size.z;
+
+	if(image.cols % block_size.y)
+	{
+		grid_size.x++;
+	}
+	if(image.rows % block_size.z)
+	{
+		grid_size.y++;
+	}
+
+	float* input_img_ptr = image.ptr< float >(0);
+	float* device_input_img;
+	cudaHostGetDevicePointer(&device_input_img, input_img_ptr, 0);
+
+	gamma_norm_kernel<<<grid_size, block_size>>>(device_input_img, image.rows,
+		image.cols, image.step1());
 }
 
 GHOG_LIB_STATUS HogGPU::calc_gradient(cv::Mat input_img,

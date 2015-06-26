@@ -1,6 +1,27 @@
 #include "HogGPU_impl.cuh"
 
-#include "math_constants.h"
+__global__ void gamma_norm_kernel(float* img,
+	int image_height,
+	int image_width,
+	int image_step)
+{
+	int channel = threadIdx.x;
+	int pixel_x = blockIdx.y * blockDim.y + threadIdx.y;
+	if(pixel_x >= image_width)
+	{
+		return;
+	}
+	int pixel_y = blockIdx.z * blockDim.z + threadIdx.z;
+	if(pixel_y >= image_height)
+	{
+		return;
+	}
+
+	int in_pixel_idx = pixel_y * image_step + pixel_x * 3 + channel;
+
+	img[in_pixel_idx] = sqrt(img[in_pixel_idx]);
+
+}
 
 __global__ void gradient_kernel(float* input_img,
 	float* magnitude,
