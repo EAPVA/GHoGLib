@@ -101,7 +101,7 @@ __global__ void histogram_kernel(float* magnitude,
 			right_bin = (left_bin + 1);
 
 			delta = (phase[phase_pixel_idx + j] / bin_size) - right_bin;
-			if(delta > 0)
+			if(delta < -0.5)
 			{
 				delta += num_bins;
 			}
