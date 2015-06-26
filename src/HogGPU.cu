@@ -197,7 +197,7 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 	cudaDeviceSynchronize();
 
 	for (int i = 0; i < descriptor.cols; ++i) {
-		if (std::fpclassify(descriptor.at< float >(i))) {
+		if (std::fpclassify(descriptor.at< float >(i)) == FP_NAN) {
 			std::cout << "NAN on descriptor[" << i << "]" << std::endl;
 		}
 	}
