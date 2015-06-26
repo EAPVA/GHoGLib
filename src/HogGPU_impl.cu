@@ -1,5 +1,7 @@
 #include "HogGPU_impl.cuh"
 
+#include "math_constants.h"
+
 __global__ void gamma_norm_kernel(float* img,
 	int image_height,
 	int image_width,
