@@ -204,7 +204,7 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 		block_posy += _block_stride.height;
 		block_posx = 0;
 	}
-//	normalize_blocks(descriptor);
+	normalize_blocks(descriptor);
 }
 
 void HogDescriptor::calc_histogram(cv::Mat magnitude,
