@@ -174,9 +174,9 @@ __global__ void block_normalization_kernel(float* histograms,
 
 	L1_norm += 0.01;
 
-	for(i = 0; i < elements_per_block; ++i)
-	{
-		descriptor[block_out_pos + i] = sqrt(
-			descriptor[block_out_pos + i] / L1_norm);
-	}
+//	for(i = 0; i < elements_per_block; ++i)
+//	{
+//		descriptor[block_out_pos + i] = sqrt(
+//			descriptor[block_out_pos + i] / L1_norm);
+//	}
 }
