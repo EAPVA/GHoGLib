@@ -111,7 +111,8 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 				}
 			}
 
-			if (phase_max == 1) {
+			if(phase_max == 1)
+			{
 				phase_max = 0;
 			}
 
@@ -226,11 +227,13 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 					(phase.at< float >(i, j) - bin_size / 2.0f) / bin_size);
 				if(left_bin < 0)
 					left_bin += _num_bins;
-				right_bin = (left_bin + 1) % _num_bins;
+				right_bin = (left_bin + 1);
 
+				//Might be outside the range. First use on the formula below, then fix the range.
 				delta = (phase.at< float >(i, j) / bin_size) - right_bin;
-				if(right_bin == 0)
-					delta -= _num_bins;
+
+				//Fix range for right_bin
+				right_bin = right_bin % _num_bins;
 
 				cell_histogram.at< float >(left_bin) += (0.5 - delta)
 					* magnitude.at< float >(i, j);
