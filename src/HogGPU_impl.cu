@@ -44,6 +44,11 @@ __global__ void gradient_kernel(float* input_img,
 		}
 	}
 
+	if(phase_max == 1)
+	{
+		phase_max = 0;
+	}
+
 	magnitude[mag_pixel_idx] = mag_max;
 	phase[phase_pixel_idx] = phase_max;
 }
