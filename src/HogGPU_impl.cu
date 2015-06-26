@@ -108,9 +108,12 @@ __global__ void histogram_kernel(float* magnitude,
 		}
 	}
 
-	for(i = 0; i < num_bins; ++i)
+	if(mag_total != 0)
 	{
-		histograms[out_idx + i] /= mag_total;
+		for(i = 0; i < num_bins; ++i)
+		{
+			histograms[out_idx + i] /= mag_total;
+		}
 	}
 }
 

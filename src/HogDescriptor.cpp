@@ -237,9 +237,12 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 		}
 	}
 
-	for(int i = 0; i < _num_bins; ++i)
+	if(mag_total != 0)
 	{
-		cell_histogram.at< float >(i) /= mag_total;
+		for(int i = 0; i < _num_bins; ++i)
+		{
+			cell_histogram.at< float >(i) /= mag_total;
+		}
 	}
 }
 
