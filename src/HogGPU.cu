@@ -195,6 +195,12 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 		_block_size.width, _block_size.height, _num_bins, _cell_grid.width,
 		_block_stride.width, _block_stride.height);
 	cudaDeviceSynchronize();
+
+	for (int i = 0; i < descriptor.cols; ++i) {
+		if (std::fpclassify(descriptor.at< float >(i))) {
+			std::cout << "NAN on descriptor[" << i << "]" << std::endl;
+		}
+	}
 }
 
 } /* namespace lib */
