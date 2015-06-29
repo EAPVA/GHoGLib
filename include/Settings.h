@@ -37,9 +37,10 @@ public:
 	void load_file(std::string filename);
 	void save_file();
 
+	std::string _filename;
+
 protected:
 	tinyxml2::XMLDocument _file;
-	std::string _filename;
 
 	void virtual save_default_settings(std::string filename);
 };

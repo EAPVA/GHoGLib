@@ -387,8 +387,7 @@ GHOG_LIB_STATUS HogDescriptor::set_param(std::string param,
 		return GHOG_LIB_STATUS_INVALID_PARAMETER_NAME;
 	}
 	_settings.save(module, param, value.c_str());
-	_window_size.height = _cell_grid.height * _cell_size.height;
-	_window_size.width = _cell_grid.width * _cell_size.width;
+	load_settings(_settings._filename); //Ugly, change ASAP.
 	return GHOG_LIB_STATUS_OK;
 }
 
