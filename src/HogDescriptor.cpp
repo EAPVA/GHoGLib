@@ -63,7 +63,7 @@ void HogDescriptor::image_normalization_sync(cv::Mat& image)
 		float* input_ptr = image.ptr< float >(i);
 		for(int j = 0; j < image.cols; ++j)
 		{
-			for (int k = 0; k < 3; ++k)
+			for(int k = 0; k < 3; ++k)
 			{
 				input_ptr[3 * j + k] = sqrt(input_ptr[3 * j + k]);
 			}
@@ -387,6 +387,8 @@ GHOG_LIB_STATUS HogDescriptor::set_param(std::string param,
 		return GHOG_LIB_STATUS_INVALID_PARAMETER_NAME;
 	}
 	_settings.save(module, param, value.c_str());
+	_window_size.height = _cell_grid.height * _cell_size.height;
+	_window_size.width = _cell_grid.width * _cell_size.width;
 	return GHOG_LIB_STATUS_OK;
 }
 
