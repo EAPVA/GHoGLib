@@ -407,8 +407,10 @@ std::string HogDescriptor::get_module(std::string param_name)
 {
 	if((param_name == "CELL_SIZE_COLS") || (param_name == "CELL_SIZE_ROWS")
 		|| (param_name == "BLOCK_SIZE_COLS")
-		|| (param_name == "BLOCK_SIZE_ROWS")
-		|| (param_name == "NUMBER_OF_BINS"))
+		|| (param_name == "BLOCK_SIZE_ROWS") || (param_name == "NUMBER_OF_BINS")
+		|| (param_name == "BLOCK_STRIDE_COLS")
+		|| (param_name == "BLOCK_STRIDE_ROWS")
+		|| (param_name == "CELL_GRID_COLS") || (param_name == "CELL_GRID_ROWS"))
 	{
 		return "Descriptor";
 	} else if((param_name == "TYPE") || (param_name == "FILENAME"))
