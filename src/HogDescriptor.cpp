@@ -121,11 +121,6 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 				}
 			}
 
-			if(phase_max == 1)
-			{
-				phase_max = 0;
-			}
-
 			magnitude_ptr[j] = mag_max;
 			phase_ptr[j] = phase_max;
 		}

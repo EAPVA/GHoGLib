@@ -23,10 +23,10 @@ enum GHOG_LIB_STATUS
 };
 
 const int GHOG_LIB_DEFAULT_NUM_BINS = 9;
-const cv::Size GHOG_LIB_DEFAULT_CELL_SIZE = cv::Size(8,8);
-const cv::Size GHOG_LIB_DEFAULT_BLOCK_SIZE = cv::Size(2,2);
-const cv::Size GHOG_LIB_DEFAULT_BLOCK_STRIDE = cv::Size(1,1);
-const cv::Size GHOG_LIB_DEFAULT_WIN_SIZE = cv::Size(8,16);
+const cv::Size GHOG_LIB_DEFAULT_CELL_SIZE = cv::Size(8, 8);
+const cv::Size GHOG_LIB_DEFAULT_BLOCK_SIZE = cv::Size(2, 2);
+const cv::Size GHOG_LIB_DEFAULT_BLOCK_STRIDE = cv::Size(1, 1);
+const cv::Size GHOG_LIB_DEFAULT_WIN_SIZE = cv::Size(8, 16);
 
 } /* namespace lib */
 } /* namespace ghog */

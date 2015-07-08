@@ -41,6 +41,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	buffer = cudamem.createMatHeader();
 	buffer.refcount = cudamem.refcount;
 	buffer.addref();
+	buffer.addref();
 	buffer.setTo(0);
 }
 
@@ -54,7 +55,7 @@ GHOG_LIB_STATUS HogGPU::image_normalization(cv::Mat& image,
 
 void HogGPU::image_normalization_sync(cv::Mat& image)
 {
-	dim3 block_size(3, 8, 8);
+	dim3 block_size(3, 64, 1);
 	dim3 grid_size;
 	grid_size.x = image.cols / block_size.y;
 	grid_size.y = image.rows / block_size.z;
@@ -74,6 +75,7 @@ void HogGPU::image_normalization_sync(cv::Mat& image)
 
 	gamma_norm_kernel<<<grid_size, block_size>>>(device_input_img, image.rows,
 		image.cols, image.step1());
+	cudaDeviceSynchronize();
 }
 
 GHOG_LIB_STATUS HogGPU::calc_gradient(cv::Mat input_img,
@@ -90,16 +92,16 @@ void HogGPU::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& magnitude,
 	cv::Mat& phase)
 {
-	dim3 block_size(8, 8);
+	dim3 block_size(3, 64, 1);
 	dim3 grid_size;
-	grid_size.x = input_img.cols / block_size.x;
-	grid_size.y = input_img.rows / block_size.y;
+	grid_size.x = input_img.cols / block_size.y;
+	grid_size.y = input_img.rows / block_size.z;
 
-	if(input_img.cols % block_size.x)
+	if(input_img.cols % block_size.y)
 	{
 		grid_size.x++;
 	}
-	if(input_img.rows % block_size.y)
+	if(input_img.rows % block_size.z)
 	{
 		grid_size.y++;
 	}
@@ -144,16 +146,16 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
 		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
 
-	dim3 block_size(8, 8);
+	dim3 block_size_hist(64, 1);
 	dim3 grid_size;
-	grid_size.x = _cell_grid.width / block_size.x;
-	grid_size.y = _cell_grid.height / block_size.y;
+	grid_size.x = magnitude.cols / block_size_hist.x;
+	grid_size.y = magnitude.rows / block_size_hist.y;
 
-	if(_cell_grid.width % block_size.x)
+	if(magnitude.cols % block_size_hist.x)
 	{
 		grid_size.x++;
 	}
-	if(_cell_grid.height % block_size.y)
+	if(magnitude.rows % block_size_hist.y)
 	{
 		grid_size.y++;
 	}
@@ -176,28 +178,28 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 	cudaMalloc((void**)&device_histograms,
 		(_cell_grid.height * cell_row_step * sizeof(float)));
 
-	histogram_kernel<<<grid_size, block_size>>>(device_magnitude, device_phase,
-		device_histograms, _cell_grid.width, _cell_grid.height,
-		magnitude.step1(), phase.step1(), cell_row_step, _cell_size.width,
-		_cell_size.height, _num_bins);
+	histogram_kernel<<<grid_size, block_size_hist>>>(device_magnitude,
+		device_phase, device_histograms, magnitude.cols, magnitude.rows,
+		_cell_grid.width, _cell_grid.height, magnitude.step1(), phase.step1(),
+		cell_row_step, _cell_size.width, _cell_size.height, _num_bins);
 
-	grid_size.x = _cell_grid.width / block_size.x;
-	grid_size.y = _cell_grid.height / block_size.y;
+	dim3 block_size_norm(9, 4, 8);
 
-	if(_cell_grid.width % block_size.x)
+	grid_size.x = hog_block_grid.width / 8; // 8 hog blocks per thread block
+	grid_size.y = hog_block_grid.height;
+
+	if(hog_block_grid.width % 8)
 	{
 		grid_size.x++;
 	}
-	if(_cell_grid.height % block_size.y)
-	{
-		grid_size.y++;
-	}
 
 	cudaDeviceSynchronize();
-	block_normalization_kernel<<<grid_size, block_size>>>(device_histograms,
-		device_descriptor, hog_block_grid.width, hog_block_grid.height,
-		_block_size.width, _block_size.height, _num_bins, _cell_grid.width,
-		_block_stride.width, _block_stride.height);
+
+//	return;
+	block_normalization_kernel<<<grid_size, block_size_norm>>>(
+		device_histograms, device_descriptor, hog_block_grid.width,
+		hog_block_grid.height, _block_size.width, _block_size.height, _num_bins,
+		_cell_grid.width, _block_stride.width, _block_stride.height);
 	cudaDeviceSynchronize();
 }
 

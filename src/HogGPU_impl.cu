@@ -8,12 +8,12 @@ __global__ void gamma_norm_kernel(float* img,
 	int image_step)
 {
 	int channel = threadIdx.x;
-	int pixel_x = blockIdx.y * blockDim.y + threadIdx.y;
+	int pixel_x = blockIdx.x * blockDim.x + threadIdx.y;
 	if(pixel_x >= image_width)
 	{
 		return;
 	}
-	int pixel_y = blockIdx.z * blockDim.z + threadIdx.z;
+	int pixel_y = blockIdx.y * blockDim.y + threadIdx.z;
 	if(pixel_y >= image_height)
 	{
 		return;
@@ -34,46 +34,58 @@ __global__ void gradient_kernel(float* input_img,
 	int magnitude_step,
 	int phase_step)
 {
-	int pixel_x = blockIdx.x * blockDim.x + threadIdx.x;
+	__shared__ float s_magnitude[192];
+	__shared__ float s_phase[192];
+
+	int channel = threadIdx.x;
+	int pixel_x = blockIdx.x * blockDim.x + threadIdx.y;
 	if(pixel_x >= image_width)
 	{
 		return;
 	}
-	int pixel_y = blockIdx.y * blockDim.y + threadIdx.y;
+	int pixel_y = blockIdx.y * blockDim.y + threadIdx.z;
 	if(pixel_y >= image_height)
 	{
 		return;
 	}
 
-	int in_pixel_idx = pixel_y * input_image_step + pixel_x * 3;
+	int bs_x = threadIdx.y;
+	int bs_y = threadIdx.z;
+	int bs_step = 3 * blockDim.y;
+	int bs_idx = bs_y * bs_step + bs_x * 3 + channel;
+
+	int in_pixel_idx = pixel_y * input_image_step + pixel_x * 3 + channel;
 	int mag_pixel_idx = pixel_y * magnitude_step + pixel_x;
 	int phase_pixel_idx = pixel_y * phase_step + pixel_x;
 
-	float dx, dy;
-	float mag_max = 0.0f;
-	float phase_max = 0.0f;
+	float dx = input_img[in_pixel_idx + 3];
+	dx -= input_img[in_pixel_idx - 3];
+	float dy = input_img[in_pixel_idx + input_image_step];
+	dy -= input_img[in_pixel_idx - input_image_step];
 
-	for(int i = 0; i < 3; ++i)
+	s_magnitude[bs_idx] = sqrt(dx * dx + dy * dy);
+	s_phase[bs_idx] = (atan2(dy, dx) + CUDART_PI_F) / (2.0f * CUDART_PI_F);
+
+	__syncthreads();
+
+	if(channel == 0)
 	{
-		dx = input_img[in_pixel_idx + 3] - input_img[in_pixel_idx - 3];
-		dy = input_img[in_pixel_idx + input_image_step]
-			- input_img[in_pixel_idx - input_image_step];
-		float mag = sqrt(dx * dx + dy * dy);
-
-		if(mag > mag_max)
+		float mag_max = s_magnitude[3 * threadIdx.y];
+		int k = 0;
+		if(s_magnitude[3 * threadIdx.y + 1] > mag_max)
 		{
-			mag_max = mag;
-			phase_max = (atan2(dy, dx) + CUDART_PI_F) / (2.0f * CUDART_PI_F);
+			mag_max = s_magnitude[3 * threadIdx.y + 1];
+			k = 1;
 		}
-	}
+		if(s_magnitude[3 * threadIdx.y + 2] > mag_max)
+		{
+			mag_max = s_magnitude[3 * threadIdx.y + 1];
+			k = 2;
+		}
 
-	if(phase_max == 1)
-	{
-		phase_max = 0;
+		magnitude[mag_pixel_idx] = mag_max;
+		phase[phase_pixel_idx] = s_phase[3 * threadIdx.y + k];
 	}
-
-	magnitude[mag_pixel_idx] = mag_max;
-	phase[phase_pixel_idx] = phase_max;
 }
 
 __global__ void histogram_kernel(float* magnitude,
@@ -81,6 +93,8 @@ __global__ void histogram_kernel(float* magnitude,
 	float* histograms,
 	int input_width,
 	int input_height,
+	int cell_grid_width,
+	int cell_grid_height,
 	int magnitude_step,
 	int phase_step,
 	int cell_row_step,
@@ -88,64 +102,77 @@ __global__ void histogram_kernel(float* magnitude,
 	int cell_height,
 	int num_bins)
 {
-	int cell_x = blockIdx.x * blockDim.x + threadIdx.x;
-	if(cell_x >= input_width)
+	__shared__ int s_lbin_pos[64];
+	__shared__ float s_lbin[64];
+	__shared__ int s_rbin_pos[64];
+	__shared__ float s_rbin[64];
+	__shared__ float s_hist[9 * 8];
+
+	int pixel_x = blockIdx.x * blockDim.x + threadIdx.x;
+	if(pixel_x >= input_width)
 	{
 		return;
 	}
-	int cell_y = blockIdx.y * blockDim.y + threadIdx.y;
-	if(cell_y >= input_height)
+	int pixel_y = blockIdx.y * blockDim.y + threadIdx.y;
+	if(pixel_y >= input_height)
 	{
 		return;
 	}
 
-	int left_bin, right_bin;
-	int pixel_x = cell_x * cell_width;
-	int pixel_y = cell_y * cell_height;
-	int mag_pixel_idx;
-	int phase_pixel_idx;
-	int out_idx = cell_y * cell_row_step + cell_x * num_bins;
-	int i, j;
+	int mag_pixel_idx = pixel_y * magnitude_step + pixel_x;
+	int phase_pixel_idx = pixel_y * phase_step + pixel_x;
 
-	float delta = 0.0f;
 	float bin_size = 1.0f / (float)num_bins;
-	float mag_total = 0;
-
-	for(i = 0; i < cell_height; ++i)
+	int left_bin = (int)floor(
+		(phase[phase_pixel_idx] - bin_size / 2.0f) / bin_size);
+	left_bin = (left_bin + num_bins) % num_bins;
+	//Might be outside the range. First use on the formula below, then fix the range.
+	int right_bin = (left_bin + 1);
+	float delta = (phase[phase_pixel_idx] / bin_size) - right_bin;
+	if(delta < -0.5)
 	{
-		mag_pixel_idx = (pixel_y + i) * magnitude_step + pixel_x;
-		phase_pixel_idx = (pixel_y + i) * phase_step + pixel_x;
-		for(j = 0; j < cell_width; ++j)
+		delta += num_bins;
+	}
+	//Fix range for right_bin
+	right_bin = right_bin % num_bins;
+
+	s_lbin_pos[threadIdx.x] = left_bin;
+	s_lbin[threadIdx.x] = (0.5 - delta) * magnitude[mag_pixel_idx];
+	s_rbin_pos[threadIdx.x] = right_bin;
+	s_lbin[threadIdx.x] = (0.5 + delta) * magnitude[mag_pixel_idx];
+
+	return;
+
+	__syncthreads();
+
+	s_hist[threadIdx.x] = 0.0f;
+	if(threadIdx.x < 8)
+	{
+		s_hist[threadIdx.x + 64] = 0.0f;
+	}
+
+	int cell_y = pixel_y / cell_height;
+
+	if(threadIdx.x < 8)
+	{
+		int s_hist_idx = 9 * threadIdx.x;
+		for(int i = 1; i < 8; ++i)
 		{
-			left_bin = (int)floor(
-				(phase[phase_pixel_idx + j] - bin_size / 2.0f) / bin_size);
-			left_bin = (left_bin + num_bins) % num_bins;
-			//Might be outside the range. First use on the formula below, then fix the range.
-			right_bin = (left_bin + 1);
-
-			delta = (phase[phase_pixel_idx + j] / bin_size) - right_bin;
-			if(delta < -0.5)
-			{
-				delta += num_bins;
-			}
-
-			//Fix range for right_bin
-			right_bin = right_bin % num_bins;
-
-			histograms[out_idx + left_bin] += (0.5 - delta)
-				* magnitude[mag_pixel_idx + j];
-			histograms[out_idx + right_bin] += (0.5 + delta)
-				* magnitude[mag_pixel_idx + j];
-			mag_total += magnitude[mag_pixel_idx + j];
+			s_hist[s_hist_idx + s_lbin_pos[8 * threadIdx.x + i]] += s_lbin[8
+				* threadIdx.x + i];
+			s_hist[s_hist_idx + s_rbin_pos[8 * threadIdx.x + i]] += s_rbin[8
+				* threadIdx.x + i];
 		}
 	}
 
-	if(mag_total != 0)
+	__syncthreads();
+
+	int out_idx = cell_y * cell_row_step + threadIdx.x;
+	atomicAdd(&(histograms[out_idx]), s_hist[threadIdx.x]);
+
+	if(threadIdx.x < 8)
 	{
-		for(i = 0; i < num_bins; ++i)
-		{
-			histograms[out_idx + i] /= mag_total;
-		}
+		atomicAdd(&(histograms[out_idx + 64]), s_hist[threadIdx.x + 64]);
 	}
 }
 
@@ -160,50 +187,43 @@ __global__ void block_normalization_kernel(float* histograms,
 	int block_stride_x,
 	int block_stride_y)
 {
-	int block_x = blockIdx.x * blockDim.x + threadIdx.x;
+	//Each thread block will process 8 hog blocks.
+	__shared__ float s_blocks[9 * 4 * 8];
+	__shared__ float L1_norm[8];
+	int block_x = blockIdx.x * 8 + threadIdx.z;
 	if(block_x >= block_grid_width)
 	{
 		return;
 	}
-	int block_y = blockIdx.y * blockDim.y + threadIdx.y;
+	int block_y = blockIdx.y;
 	if(block_y >= block_grid_height)
 	{
 		return;
 	}
-	int block_idx = block_y * block_grid_width + block_x;
-	int elements_per_block = block_width * block_height * num_bins;
-	int block_out_pos = block_idx * elements_per_block;
-	int block_out_pos_delta = 0;
+	int block_idx = block_y * blockDim.y + block_x;
+	int cell_x = block_x * block_stride_x + threadIdx.y % 2;
+	int cell_y = block_y * block_stride_y + threadIdx.y / 2;
+	int cell_idx = cell_y * cell_grid_width + cell_x;
+	int hist_idx = 9 * cell_idx + threadIdx.x;
 
-	int cell_x = block_x * block_stride_x;
-	int cell_y = block_y * block_stride_y;
-	int cell_idx;
-	int hist_pos;
-	int i, j, k;
+	int s_blocks_idx = 9 * threadIdx.y + threadIdx.x;
+	s_blocks[s_blocks_idx] = histograms[hist_idx];
 
-	float L1_norm = 0.0f;
+	__syncthreads();
 
-	for(i = 0; i < block_height; ++i)
+	int thread_id = 36 * threadIdx.z + 9 * threadIdx.y + threadIdx.x;
+	int elements_per_block = block_height * block_width * num_bins;
+	if(thread_id < 8)
 	{
-		cell_idx = ((cell_y + i) * cell_grid_width) + cell_x;
-		for(j = 0; j < block_width; ++j)
+		L1_norm[thread_id] = 0.0f;
+		for(int i = 0; i < elements_per_block; ++i)
 		{
-			hist_pos = (cell_idx + j) * num_bins;
-			for(k = 0; k < num_bins; ++k)
-			{
-				L1_norm += histograms[hist_pos + k];
-				descriptor[block_out_pos + block_out_pos_delta] =
-					histograms[hist_pos + k];
-				block_out_pos_delta++;
-			}
+			L1_norm[thread_id] += s_blocks[elements_per_block * thread_id + i];
 		}
 	}
 
-	L1_norm += 0.01;
+	__syncthreads();
 
-	for(i = 0; i < elements_per_block; ++i)
-	{
-		descriptor[block_out_pos + i] = sqrt(
-			descriptor[block_out_pos + i] / L1_norm);
-	}
+	descriptor[elements_per_block * block_idx + s_blocks_idx] =
+		s_blocks[s_blocks_idx];
 }
