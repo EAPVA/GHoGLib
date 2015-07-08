@@ -104,7 +104,7 @@ GHOG_LIB_STATUS MultilayerPerceptron::classify_async(cv::Mat input,
 	return GHOG_LIB_STATUS_OK;
 }
 
-GHOG_LIB_STATUS MultilayerPerceptron::train_sync(cv::Mat train_data,
+void MultilayerPerceptron::train_sync(cv::Mat train_data,
 	cv::Mat expected_outputs)
 {
 	cv::Mat output;
@@ -114,7 +114,6 @@ GHOG_LIB_STATUS MultilayerPerceptron::train_sync(cv::Mat train_data,
 		backpropagation(expected_outputs.row(i), output);
 		update_weights();
 	}
-	return GHOG_LIB_STATUS_OK;
 }
 
 cv::Mat MultilayerPerceptron::classify_sync(cv::Mat input)
