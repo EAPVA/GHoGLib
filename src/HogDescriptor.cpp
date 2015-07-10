@@ -37,8 +37,10 @@ void HogDescriptor::alloc_buffer(cv::Size buffer_size,
 	int type,
 	cv::Mat& buffer)
 {
-	buffer.create(buffer_size.height, buffer_size.width, type);
-	buffer.setTo(0);
+	cv::Mat buffer_padding(buffer_size.height + 2, buffer_size.width + 2, type);
+	buffer_padding.setTo(0);
+	buffer = buffer_padding.rowRange(1, buffer_padding.rows - 1).colRange(1,
+		buffer_padding.cols - 1);
 }
 
 GHOG_LIB_STATUS HogDescriptor::image_normalization(cv::Mat& image,
@@ -153,7 +155,6 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 //TODO: verify that magnitude and phase have correct size and type.
 //TODO: verify that the descriptor has correct size and type
 //TODO: possibly preallocate histograms auxiliary matrix
-
 	cv::Mat histograms[_cell_grid.height];
 	cv::Size block_grid(
 		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
