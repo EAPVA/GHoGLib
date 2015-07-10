@@ -5,7 +5,7 @@
  *      Author: teider
  */
 
-#include "SVMClassifier.h"
+#include <include/SVMClassifier.h>
 
 #include <boost/thread.hpp>
 
