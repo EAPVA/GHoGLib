@@ -28,7 +28,8 @@ public:
 
 	void alloc_buffer(cv::Size buffer_size,
 		int type,
-		cv::Mat& buffer);
+		cv::Mat& buffer,
+		int padding_size);
 
 	GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
@@ -46,9 +47,13 @@ public:
 		cv::Mat phase,
 		cv::Mat& descriptor,
 		DescriptorCallback* callback);
+//	virtual void create_descriptor_sync(cv::Mat magnitude,
+//		cv::Mat phase,
+//		cv::Mat& descriptor);
 	virtual void create_descriptor_sync(cv::Mat magnitude,
 		cv::Mat phase,
-		cv::Mat& descriptor);
+		cv::Mat& descriptor,
+		cv::Mat& histograms);
 };
 
 } /* namespace lib */

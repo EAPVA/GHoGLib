@@ -28,7 +28,8 @@ public:
 
 	virtual void alloc_buffer(cv::Size buffer_size,
 		int type,
-		cv::Mat& buffer);
+		cv::Mat& buffer,
+		int padding_size);
 
 	virtual GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
@@ -49,6 +50,10 @@ public:
 	virtual void create_descriptor_sync(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat& descriptor);
+	virtual void create_descriptor_sync(cv::Mat magnitude,
+		cv::Mat phase,
+		cv::Mat& descriptor,
+		cv::Mat& histograms);
 
 	virtual GHOG_LIB_STATUS classify(cv::Mat img,
 		ClassifyCallback* callback);
@@ -59,7 +64,7 @@ public:
 		cv::Size window_size,
 		cv::Size window_stride,
 		LocateCallback* callback);
-	virtual std::vector< cv::Rect > locate_sync(cv::Mat img,
+	virtual std::vector<cv::Rect> locate_sync(cv::Mat img,
 		cv::Rect roi,
 		cv::Size window_size,
 		cv::Size window_stride);
