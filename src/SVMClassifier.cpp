@@ -45,7 +45,7 @@ void SVMClassifier::train_sync(cv::Mat train_data,
 	cv::Mat expected_outputs)
 {
 	_svm.train_auto(train_data, expected_outputs, cv::Mat(), cv::Mat(),
-		_svm_params);
+		_svm_params, 5);
 }
 
 GHOG_LIB_STATUS SVMClassifier::classify_async(cv::Mat input,

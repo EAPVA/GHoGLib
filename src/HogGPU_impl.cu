@@ -153,7 +153,7 @@ __global__ void histogram_kernel(float* magnitude,
 		s_lbin_pos[threadIdx.x] = left_bin;
 		s_lbin[threadIdx.x] = (0.5 - delta) * magnitude[mag_pixel_idx];
 		s_rbin_pos[threadIdx.x] = right_bin;
-		s_lbin[threadIdx.x] = (0.5 + delta) * magnitude[mag_pixel_idx];
+		s_rbin[threadIdx.x] = (0.5 + delta) * magnitude[mag_pixel_idx];
 
 //	s_hist[threadIdx.x] = 0.0f;
 
@@ -240,5 +240,5 @@ __global__ void block_normalization_kernel(float* histograms,
 	__syncthreads();
 
 	descriptor[elements_per_block * block_idx + s_blocks_idx] =
-		s_blocks[s_blocks_idx];
+		s_blocks[s_blocks_idx] / L1_norm[threadIdx.z];
 }

@@ -120,6 +120,9 @@ protected:
 	cv::Size _block_stride; //In number of cells
 	cv::Size _cell_grid; //In number of cells
 	cv::Size _window_size; //In number of pixels
+
+	GHOG_LIB_NORM_TYPE _norm_type;
+	cv::Mat _gaussian_window;
 };
 
 } /* namespace lib */
