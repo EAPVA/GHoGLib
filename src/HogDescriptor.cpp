@@ -33,7 +33,7 @@ HogDescriptor::~HogDescriptor()
 // TODO Auto-generated destructor stub
 }
 
-void HogDescriptor::alloc_buffer(cv::Size buffer_size,
+GHOG_LIB_STATUS HogDescriptor::alloc_buffer(cv::Size buffer_size,
 	int type,
 	cv::Mat& buffer,
 	int padding_size)
@@ -44,6 +44,7 @@ void HogDescriptor::alloc_buffer(cv::Size buffer_size,
 	buffer = buffer_padding.rowRange(padding_size,
 		buffer_padding.rows - padding_size).colRange(padding_size,
 		buffer_padding.cols - padding_size);
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS HogDescriptor::image_normalization(cv::Mat& image,
@@ -61,7 +62,7 @@ void HogDescriptor::image_normalization_async(cv::Mat& image,
 	callback->image_processed(image);
 }
 
-void HogDescriptor::image_normalization_sync(cv::Mat& image)
+GHOG_LIB_STATUS HogDescriptor::image_normalization_sync(cv::Mat& image)
 {
 	for(int i = 0; i < image.rows; ++i)
 	{
@@ -74,6 +75,7 @@ void HogDescriptor::image_normalization_sync(cv::Mat& image)
 			}
 		}
 	}
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS HogDescriptor::calc_gradient(cv::Mat input_img,
@@ -95,12 +97,10 @@ void HogDescriptor::calc_gradient_async(cv::Mat input_img,
 	callback->gradients_obtained(magnitude, phase);
 }
 
-void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
+GHOG_LIB_STATUS HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& magnitude,
 	cv::Mat& phase)
 {
-	//TODO: Check that all matrices have the correct size.
-
 	int block_posx = 0;
 	int block_posy = 0;
 	for(int i = 0; i < input_img.rows; ++i)
@@ -151,6 +151,7 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 			block_posy = 0;
 		}
 	}
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS HogDescriptor::create_descriptor(cv::Mat magnitude,
@@ -172,22 +173,29 @@ void HogDescriptor::create_descriptor_async(cv::Mat magnitude,
 	callback->descriptor_obtained(descriptor);
 }
 
-void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
+GHOG_LIB_STATUS HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat& descriptor)
 {
 	cv::Mat histograms;
 	cv::Size histograms_size(_cell_grid.width, _cell_grid.height);
 	alloc_buffer(histograms_size, CV_32FC(9), histograms, 0);
-	create_descriptor_sync(magnitude, phase, descriptor, histograms);
+	return create_descriptor_sync(magnitude, phase, descriptor, histograms);
 }
 
-void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
+GHOG_LIB_STATUS HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat& descriptor,
 	cv::Mat& histograms)
 {
-//TODO: verify that magnitude and phase have correct size and type.
+	if((magnitude.size() != _window_size) || (phase.size() != _window_size))
+	{
+		std::cout << "Erro ao chamar a função create_descriptor_sync. "
+			<< "Imagens de entrada tem tamanho diferente do esperado"
+			<< std::endl;
+		return GHOG_LIB_STATUS_INVALID_IMAGE_SIZE;
+	}
+//TODO: verify that magnitude and phase have correct type.
 //TODO: verify that the descriptor has correct size and type
 
 	cv::Size block_grid(
@@ -247,6 +255,7 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 		block_posx = 0;
 	}
 	normalize_blocks(descriptor);
+	return GHOG_LIB_STATUS_OK;
 }
 
 void HogDescriptor::calc_histogram(cv::Mat magnitude,

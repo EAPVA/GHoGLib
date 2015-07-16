@@ -32,7 +32,7 @@ HogGPU::~HogGPU()
 // TODO Auto-generated destructor stub
 }
 
-void HogGPU::alloc_buffer(cv::Size buffer_size,
+GHOG_LIB_STATUS HogGPU::alloc_buffer(cv::Size buffer_size,
 	int type,
 	cv::Mat& buffer,
 	int padding_size)
@@ -47,6 +47,7 @@ void HogGPU::alloc_buffer(cv::Size buffer_size,
 	buffer.addref();
 	cv::Mat header_temp = cudamem.createMatHeader();
 	header_temp.setTo(0);
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS HogGPU::image_normalization(cv::Mat& image,
@@ -57,7 +58,7 @@ GHOG_LIB_STATUS HogGPU::image_normalization(cv::Mat& image,
 	return GHOG_LIB_STATUS_OK;
 }
 
-void HogGPU::image_normalization_sync(cv::Mat& image)
+GHOG_LIB_STATUS HogGPU::image_normalization_sync(cv::Mat& image)
 {
 	dim3 block_size(3, 64, 1);
 	dim3 grid_size;
@@ -80,6 +81,7 @@ void HogGPU::image_normalization_sync(cv::Mat& image)
 	gamma_norm_kernel<<<grid_size, block_size>>>(device_input_img, image.rows,
 		image.cols, image.step1());
 	cudaDeviceSynchronize();
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS HogGPU::calc_gradient(cv::Mat input_img,
@@ -92,7 +94,7 @@ GHOG_LIB_STATUS HogGPU::calc_gradient(cv::Mat input_img,
 	return GHOG_LIB_STATUS_OK;
 }
 
-void HogGPU::calc_gradient_sync(cv::Mat input_img,
+GHOG_LIB_STATUS HogGPU::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& magnitude,
 	cv::Mat& phase)
 {
@@ -126,6 +128,7 @@ void HogGPU::calc_gradient_sync(cv::Mat input_img,
 		device_magnitude, device_phase, input_img.rows, input_img.cols,
 		input_img.step1(), magnitude.step1(), phase.step1());
 	cudaDeviceSynchronize();
+	return GHOG_LIB_STATUS_OK;
 }
 
 GHOG_LIB_STATUS HogGPU::create_descriptor(cv::Mat magnitude,
@@ -138,7 +141,7 @@ GHOG_LIB_STATUS HogGPU::create_descriptor(cv::Mat magnitude,
 	return GHOG_LIB_STATUS_OK;
 }
 
-void HogGPU::create_descriptor_sync(cv::Mat magnitude,
+GHOG_LIB_STATUS HogGPU::create_descriptor_sync(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat& descriptor,
 	cv::Mat& histograms)
@@ -205,6 +208,7 @@ void HogGPU::create_descriptor_sync(cv::Mat magnitude,
 		_block_size.height, _num_bins, _cell_grid.width, _block_stride.width,
 		_block_stride.height);
 	cudaDeviceSynchronize();
+	return GHOG_LIB_STATUS_OK;
 }
 
 } /* namespace lib */

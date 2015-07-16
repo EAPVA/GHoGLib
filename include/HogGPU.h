@@ -26,20 +26,20 @@ public:
 	HogGPU(std::string settings_file);
 	virtual ~HogGPU();
 
-	void alloc_buffer(cv::Size buffer_size,
+	GHOG_LIB_STATUS alloc_buffer(cv::Size buffer_size,
 		int type,
 		cv::Mat& buffer,
 		int padding_size);
 
 	GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
-	void image_normalization_sync(cv::Mat& image);
+	GHOG_LIB_STATUS image_normalization_sync(cv::Mat& image);
 
 	GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase,
 		GradientCallback* callback);
-	void calc_gradient_sync(cv::Mat input_img,
+	GHOG_LIB_STATUS calc_gradient_sync(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase);
 
@@ -50,7 +50,7 @@ public:
 //	virtual void create_descriptor_sync(cv::Mat magnitude,
 //		cv::Mat phase,
 //		cv::Mat& descriptor);
-	virtual void create_descriptor_sync(cv::Mat magnitude,
+	virtual GHOG_LIB_STATUS create_descriptor_sync(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat& descriptor,
 		cv::Mat& histograms);

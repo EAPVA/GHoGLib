@@ -26,20 +26,20 @@ public:
 	HogDescriptor(std::string settings_file);
 	virtual ~HogDescriptor();
 
-	virtual void alloc_buffer(cv::Size buffer_size,
+	virtual GHOG_LIB_STATUS alloc_buffer(cv::Size buffer_size,
 		int type,
 		cv::Mat& buffer,
 		int padding_size);
 
 	virtual GHOG_LIB_STATUS image_normalization(cv::Mat& image,
 		ImageCallback* callback);
-	virtual void image_normalization_sync(cv::Mat& image);
+	virtual GHOG_LIB_STATUS image_normalization_sync(cv::Mat& image);
 
 	virtual GHOG_LIB_STATUS calc_gradient(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase,
 		GradientCallback* callback);
-	virtual void calc_gradient_sync(cv::Mat input_img,
+	virtual GHOG_LIB_STATUS calc_gradient_sync(cv::Mat input_img,
 		cv::Mat& magnitude,
 		cv::Mat& phase);
 
@@ -47,10 +47,10 @@ public:
 		cv::Mat phase,
 		cv::Mat& descriptor,
 		DescriptorCallback* callback);
-	virtual void create_descriptor_sync(cv::Mat magnitude,
+	virtual GHOG_LIB_STATUS create_descriptor_sync(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat& descriptor);
-	virtual void create_descriptor_sync(cv::Mat magnitude,
+	virtual GHOG_LIB_STATUS create_descriptor_sync(cv::Mat magnitude,
 		cv::Mat phase,
 		cv::Mat& descriptor,
 		cv::Mat& histograms);
