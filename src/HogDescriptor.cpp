@@ -189,7 +189,7 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 {
 //TODO: verify that magnitude and phase have correct size and type.
 //TODO: verify that the descriptor has correct size and type
-//TODO: possibly preallocate histograms auxiliary matrix
+
 	cv::Size block_grid(
 		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
 		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
