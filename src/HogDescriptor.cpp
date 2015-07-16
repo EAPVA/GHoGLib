@@ -35,10 +35,15 @@ HogDescriptor::~HogDescriptor()
 
 void HogDescriptor::alloc_buffer(cv::Size buffer_size,
 	int type,
-	cv::Mat& buffer)
+	cv::Mat& buffer,
+	int padding_size)
 {
-	buffer.create(buffer_size.height, buffer_size.width, type);
-	buffer.setTo(0);
+	cv::Mat buffer_padding(buffer_size.height + 2 * padding_size,
+		buffer_size.width + 2 * padding_size, type);
+	buffer_padding.setTo(0);
+	buffer = buffer_padding.rowRange(padding_size,
+		buffer_padding.rows - padding_size).colRange(padding_size,
+		buffer_padding.cols - padding_size);
 }
 
 GHOG_LIB_STATUS HogDescriptor::image_normalization(cv::Mat& image,
@@ -65,7 +70,7 @@ void HogDescriptor::image_normalization_sync(cv::Mat& image)
 		{
 			for(int k = 0; k < 3; ++k)
 			{
-				input_ptr[3 * j + k] = sqrt(input_ptr[3 * j + k]);
+				input_ptr[3 * j + k] = sqrt(input_ptr[3 * j + k] / 256.0);
 			}
 		}
 	}
@@ -96,6 +101,8 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 {
 	//TODO: Check that all matrices have the correct size.
 
+	int block_posx = 0;
+	int block_posy = 0;
 	for(int i = 0; i < input_img.rows; ++i)
 	{
 		float* input_ptr = input_img.ptr< float >(i);
@@ -111,18 +118,37 @@ void HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 				dx = input_ptr[3 * j + k + 3] - input_ptr[3 * j + k - 3];
 				dy = input_ptr[3 * j + k + input_img.step1()]
 					- input_ptr[3 * j + k - input_img.step1()];
+				if(i == 0 || i == input_img.rows - 1)
+				{
+					dy = 0;
+				}
+
+				if(j == 0 || j == input_img.cols - 1)
+				{
+					dx = 0;
+				}
 
 				float mag = sqrt(dx * dx + dy * dy);
 				if(mag > mag_max)
 				{
 					mag_max = mag;
-					phase_max = (atan2(dy, dx) + CUDART_PI_F)
-						/ (2.0f * CUDART_PI_F);
+					phase_max = (atan(dy / dx) / CUDART_PI_F) + 0.5f;
 				}
 			}
 
-			magnitude_ptr[j] = mag_max;
+			magnitude_ptr[j] = mag_max
+				* _gaussian_window.at< float >(block_posy, block_posx);
+			block_posx++;
+			if(block_posx > _gaussian_window.cols)
+			{
+				block_posx = 0;
+			}
 			phase_ptr[j] = phase_max;
+		}
+		block_posy++;
+		if(block_posy > _gaussian_window.rows)
+		{
+			block_posy = 0;
 		}
 	}
 }
@@ -150,20 +176,25 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 	cv::Mat phase,
 	cv::Mat& descriptor)
 {
+	cv::Mat histograms;
+	cv::Size histograms_size(_cell_grid.width, _cell_grid.height);
+	alloc_buffer(histograms_size, CV_32FC(9), histograms, 0);
+	create_descriptor_sync(magnitude, phase, descriptor, histograms);
+}
+
+void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
+	cv::Mat phase,
+	cv::Mat& descriptor,
+	cv::Mat& histograms)
+{
 //TODO: verify that magnitude and phase have correct size and type.
 //TODO: verify that the descriptor has correct size and type
 //TODO: possibly preallocate histograms auxiliary matrix
-
-	cv::Mat histograms[_cell_grid.height];
 	cv::Size block_grid(
 		((_cell_grid.width - _block_size.width) / _block_stride.width) + 1,
 		((_cell_grid.height - _block_size.height) / _block_stride.height) + 1);
 	int cells_per_block = _block_size.width * _block_size.height;
 	cv::Size histograms_size(_num_bins, _cell_grid.width);
-	for(int i = 0; i < _cell_grid.height; ++i)
-	{
-		alloc_buffer(histograms_size, CV_32FC1, histograms[i]);
-	}
 	int top_row = 0, bottom_row = 0, left_col = 0, right_col = 0;
 
 	for(int i = 0; i < _cell_grid.height; ++i)
@@ -174,10 +205,10 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 		for(int j = 0; j < _cell_grid.width; ++j)
 		{
 			right_col = left_col + _cell_size.width;
-			//Each element of the array histograms contains a ROW of the cell grid.
-			//Each ROW of each element corresponds to a COLUMN of the cell grid.
+			//Each element of the array histograms contains a histogram of one cell.
 			calc_histogram(mag_aux.colRange(left_col, right_col),
-				phase_aux.colRange(left_col, right_col), histograms[i].row(j));
+				phase_aux.colRange(left_col, right_col),
+				histograms.row(i).col(j));
 			left_col = right_col;
 		}
 		left_col = 0;
@@ -196,12 +227,18 @@ void HogDescriptor::create_descriptor_sync(cv::Mat magnitude,
 		{
 			for(int k = 0; k < _block_size.height; ++k)
 			{
+				float* histograms_ptr = histograms.ptr< float >(block_posy + k);
 				for(int l = 0; l < _block_size.width; ++l)
 				{
-					histograms[block_posy + k].row(block_posx + l).copyTo(
-						descriptor.colRange(left_col, right_col));
+					cv::Mat descriptor_aux = descriptor.colRange(left_col,
+						right_col);
+					for(int m = 0; m < _num_bins; ++m)
+					{
+						descriptor_aux.at< float >(m) = histograms_ptr[m];
+					}
 					left_col = right_col;
 					right_col = left_col + _num_bins;
+					histograms_ptr += _num_bins;
 				}
 			}
 			block_posx += _block_stride.width;
@@ -222,6 +259,12 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 	float delta;
 
 	float mag_total = 0.0f;
+	float* cell_histogram_ptr = cell_histogram.ptr< float >(0);
+
+	for(int i = 0; i < cell_histogram.cols; ++i)
+	{
+		cell_histogram_ptr[i] = 0.0f;
+	}
 
 	for(int i = 0; i < magnitude.rows; ++i)
 	{
@@ -244,20 +287,12 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 				//Fix range for right_bin
 				right_bin = right_bin % _num_bins;
 
-				cell_histogram.at< float >(left_bin) += (0.5 - delta)
+				cell_histogram_ptr[left_bin] += (0.5 - delta)
 					* magnitude.at< float >(i, j);
-				cell_histogram.at< float >(right_bin) += (0.5 + delta)
+				cell_histogram_ptr[right_bin] += (0.5 + delta)
 					* magnitude.at< float >(i, j);
 				mag_total += magnitude.at< float >(i, j);
 			}
-		}
-	}
-
-	if(mag_total != 0)
-	{
-		for(int i = 0; i < _num_bins; ++i)
-		{
-			cell_histogram.at< float >(i) /= mag_total;
 		}
 	}
 }
@@ -269,17 +304,59 @@ void HogDescriptor::normalize_blocks(cv::Mat& descriptor)
 
 	for(int i = 0; i < descriptor.cols; i += elements_per_block)
 	{
-		float L1_norm = 0.0f;
+		float L_norm = 0.0f;
 		for(int j = 0; j < elements_per_block; ++j)
 		{
-			L1_norm += descriptor.at< float >(i + j);
+			float aux = descriptor.at< float >(i + j);
+			switch(_norm_type)
+			{
+			case GHOG_LIB_NORM_TYPE_L1_SQRT:
+				L_norm += aux;
+			break;
+			case GHOG_LIB_NORM_TYPE_L2_HYS:
+				L_norm += aux * aux;
+			break;
+			default:
+				return;
+			}
 		}
-		L1_norm += 0.01;
+		L_norm += 0.00001;
+		if(_norm_type == GHOG_LIB_NORM_TYPE_L2_HYS)
+		{
+			L_norm = sqrt(L_norm);
+		}
+		float new_mag = 0.0f;
 		for(int j = 0; j < elements_per_block; ++j)
 		{
-			descriptor.at< float >(i + j) = sqrt(
-				descriptor.at< float >(i + j) / L1_norm);
+			switch(_norm_type)
+			{
+			case GHOG_LIB_NORM_TYPE_L1_SQRT:
+				descriptor.at< float >(i + j) = sqrt(
+					descriptor.at< float >(i + j) / L_norm);
+			break;
+			case GHOG_LIB_NORM_TYPE_L2_HYS:
+				float aux = descriptor.at< float >(i + j);
+				aux /= L_norm;
+				if(aux > 0.2)
+				{
+					aux = 0.2;
+				}
+				new_mag += aux * aux;
+				descriptor.at< float >(i + j) = aux;
+			}
 		}
+		new_mag = sqrt(new_mag);
+		if(_norm_type == GHOG_LIB_NORM_TYPE_L2_HYS)
+		{
+			if(new_mag > 0)
+			{
+				for(int j = 0; j < elements_per_block; ++j)
+				{
+					descriptor.at< float >(i + j) /= new_mag;
+				}
+			}
+		}
+
 	}
 }
 
@@ -366,6 +443,23 @@ void HogDescriptor::load_settings(std::string filename)
 		"CELL_GRID_ROWS");
 	_window_size.height = _cell_grid.height * _cell_size.height;
 	_window_size.width = _cell_grid.width * _cell_size.width;
+
+	_norm_type = GHOG_LIB_NORM_TYPE_L2_HYS;
+	cv::Size block_dim(_block_size.width * _cell_size.width,
+		_block_size.height * _cell_size.height);
+	_gaussian_window.create(block_dim, CV_32FC1);
+	float win_sigma = 3.0f;
+	float scale = (1.0f / (2 * win_sigma * win_sigma));
+	for(int i = 0; i < _gaussian_window.rows; ++i)
+	{
+		for(int j = 0; j < _gaussian_window.cols; ++j)
+		{
+			float di = i - ((_gaussian_window.rows - 1) / 2.0f);
+			float dj = j - ((_gaussian_window.cols - 1) / 2.0f);
+			_gaussian_window.at< float >(i, j) = std::exp(
+				-(di * di + dj * dj) * scale);
+		}
+	}
 }
 
 void HogDescriptor::set_classifier(IClassifier* classifier)

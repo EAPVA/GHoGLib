@@ -8,12 +8,12 @@ __global__ void gamma_norm_kernel(float* img,
 	int image_step)
 {
 	int channel = threadIdx.x;
-	int pixel_x = blockIdx.x * blockDim.x + threadIdx.y;
+	int pixel_x = blockIdx.x * blockDim.y + threadIdx.y;
 	if(pixel_x >= image_width)
 	{
 		return;
 	}
-	int pixel_y = blockIdx.y * blockDim.y + threadIdx.z;
+	int pixel_y = blockIdx.y * blockDim.z + threadIdx.z;
 	if(pixel_y >= image_height)
 	{
 		return;
@@ -21,7 +21,7 @@ __global__ void gamma_norm_kernel(float* img,
 
 	int in_pixel_idx = pixel_y * image_step + pixel_x * 3 + channel;
 
-	img[in_pixel_idx] = sqrt(img[in_pixel_idx]);
+	img[in_pixel_idx] = sqrt(img[in_pixel_idx] / 256.0f);
 
 }
 
@@ -38,12 +38,12 @@ __global__ void gradient_kernel(float* input_img,
 	__shared__ float s_phase[192];
 
 	int channel = threadIdx.x;
-	int pixel_x = blockIdx.x * blockDim.x + threadIdx.y;
+	int pixel_x = blockIdx.x * blockDim.y + threadIdx.y;
 	if(pixel_x >= image_width)
 	{
 		return;
 	}
-	int pixel_y = blockIdx.y * blockDim.y + threadIdx.z;
+	int pixel_y = blockIdx.y * blockDim.z + threadIdx.z;
 	if(pixel_y >= image_height)
 	{
 		return;
@@ -97,7 +97,7 @@ __global__ void histogram_kernel(float* magnitude,
 	int cell_grid_height,
 	int magnitude_step,
 	int phase_step,
-	int cell_row_step,
+	int histograms_step,
 	int cell_width,
 	int cell_height,
 	int num_bins)
@@ -106,78 +106,94 @@ __global__ void histogram_kernel(float* magnitude,
 	__shared__ float s_lbin[64];
 	__shared__ int s_rbin_pos[64];
 	__shared__ float s_rbin[64];
-	__shared__ float s_hist[9 * 8];
+	__shared__ float s_hist[9 * 2];
+	__shared__ float s_hist_total[2];
+
+	if(threadIdx.x < 18)
+	{
+		s_hist[threadIdx.x] = 0.0f;
+	}
+	if(threadIdx.x < 2)
+	{
+		s_hist_total[threadIdx.x] = 0.0f;
+	}
 
 	int pixel_x = blockIdx.x * blockDim.x + threadIdx.x;
 	if(pixel_x >= input_width)
 	{
 		return;
 	}
-	int pixel_y = blockIdx.y * blockDim.y + threadIdx.y;
+	int pixel_y = 32 * (blockIdx.y * blockDim.y + threadIdx.y);
 	if(pixel_y >= input_height)
 	{
 		return;
 	}
-
-	int mag_pixel_idx = pixel_y * magnitude_step + pixel_x;
-	int phase_pixel_idx = pixel_y * phase_step + pixel_x;
-
-	float bin_size = 1.0f / (float)num_bins;
-	int left_bin = (int)floor(
-		(phase[phase_pixel_idx] - bin_size / 2.0f) / bin_size);
-	left_bin = (left_bin + num_bins) % num_bins;
-	//Might be outside the range. First use on the formula below, then fix the range.
-	int right_bin = (left_bin + 1);
-	float delta = (phase[phase_pixel_idx] / bin_size) - right_bin;
-	if(delta < -0.5)
-	{
-		delta += num_bins;
-	}
-	//Fix range for right_bin
-	right_bin = right_bin % num_bins;
-
-	s_lbin_pos[threadIdx.x] = left_bin;
-	s_lbin[threadIdx.x] = (0.5 - delta) * magnitude[mag_pixel_idx];
-	s_rbin_pos[threadIdx.x] = right_bin;
-	s_lbin[threadIdx.x] = (0.5 + delta) * magnitude[mag_pixel_idx];
-
-	return;
-
-	__syncthreads();
-
-	s_hist[threadIdx.x] = 0.0f;
-	if(threadIdx.x < 8)
-	{
-		s_hist[threadIdx.x + 64] = 0.0f;
-	}
-
 	int cell_y = pixel_y / cell_height;
+	int cell_x = pixel_x / cell_width;
 
-	if(threadIdx.x < 8)
+	for(int i = 0; i < 32; ++i)
 	{
-		int s_hist_idx = 9 * threadIdx.x;
-		for(int i = 1; i < 8; ++i)
+		int mag_pixel_idx = pixel_y * magnitude_step + pixel_x;
+		int phase_pixel_idx = pixel_y * phase_step + pixel_x;
+
+		float bin_size = 1.0f / (float)num_bins;
+		int left_bin = (int)floor(
+			(phase[phase_pixel_idx] - bin_size / 2.0f) / bin_size);
+		left_bin = (left_bin + num_bins) % num_bins;
+		//Might be outside the range. First use on the formula below, then fix the range.
+		int right_bin = (left_bin + 1);
+		float delta = (phase[phase_pixel_idx] / bin_size) - right_bin;
+		if(delta < -0.5)
 		{
-			s_hist[s_hist_idx + s_lbin_pos[8 * threadIdx.x + i]] += s_lbin[8
-				* threadIdx.x + i];
-			s_hist[s_hist_idx + s_rbin_pos[8 * threadIdx.x + i]] += s_rbin[8
-				* threadIdx.x + i];
+			delta += num_bins;
 		}
+		//Fix range for right_bin
+		right_bin = right_bin % num_bins;
+
+		s_lbin_pos[threadIdx.x] = left_bin;
+		s_lbin[threadIdx.x] = (0.5 - delta) * magnitude[mag_pixel_idx];
+		s_rbin_pos[threadIdx.x] = right_bin;
+		s_rbin[threadIdx.x] = (0.5 + delta) * magnitude[mag_pixel_idx];
+
+//	s_hist[threadIdx.x] = 0.0f;
+
+		__syncthreads();
+
+		if(threadIdx.x < 2)
+		{
+			int s_hist_idx = 9 * threadIdx.x;
+			for(int i = 0; i < 32; ++i)
+			{
+				s_hist[s_hist_idx + s_lbin_pos[32 * threadIdx.x + i]] +=
+					s_lbin[32 * threadIdx.x + i];
+				s_hist[s_hist_idx + s_rbin_pos[32 * threadIdx.x + i]] +=
+					s_rbin[32 * threadIdx.x + i];
+				s_hist_total[threadIdx.x] += s_lbin[32 * threadIdx.x + i]
+					+ s_rbin[32 * threadIdx.x + i];
+			}
+		}
+		pixel_y++;
+
+		__syncthreads();
 	}
 
-	__syncthreads();
+	int cell_pos = threadIdx.x / 9;
+	int out_idx = histograms_step * cell_y + num_bins * (cell_x) + threadIdx.x;
+//	return;
 
-	int out_idx = cell_y * cell_row_step + threadIdx.x;
-	atomicAdd(&(histograms[out_idx]), s_hist[threadIdx.x]);
-
-	if(threadIdx.x < 8)
+	if(threadIdx.x < 18)
 	{
-		atomicAdd(&(histograms[out_idx + 64]), s_hist[threadIdx.x + 64]);
+		if(s_hist_total[cell_pos] > 0.1)
+		{
+			s_hist[threadIdx.x] /= s_hist_total[cell_pos];
+		}
+		histograms[out_idx] = s_hist[threadIdx.x];
 	}
 }
 
 __global__ void block_normalization_kernel(float* histograms,
 	float* descriptor,
+	int histograms_step,
 	int block_grid_width,
 	int block_grid_height,
 	int block_width,
@@ -203,8 +219,7 @@ __global__ void block_normalization_kernel(float* histograms,
 	int block_idx = block_y * blockDim.y + block_x;
 	int cell_x = block_x * block_stride_x + threadIdx.y % 2;
 	int cell_y = block_y * block_stride_y + threadIdx.y / 2;
-	int cell_idx = cell_y * cell_grid_width + cell_x;
-	int hist_idx = 9 * cell_idx + threadIdx.x;
+	int hist_idx = histograms_step * cell_y + num_bins * (cell_x) + threadIdx.x;
 
 	int s_blocks_idx = 9 * threadIdx.y + threadIdx.x;
 	s_blocks[s_blocks_idx] = histograms[hist_idx];
@@ -225,5 +240,5 @@ __global__ void block_normalization_kernel(float* histograms,
 	__syncthreads();
 
 	descriptor[elements_per_block * block_idx + s_blocks_idx] =
-		s_blocks[s_blocks_idx];
+		s_blocks[s_blocks_idx] / L1_norm[threadIdx.z];
 }

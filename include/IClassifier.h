@@ -44,7 +44,7 @@ public:
 	virtual GHOG_LIB_STATUS train_async(cv::Mat train_data,
 		cv::Mat expected_outputs,
 		TrainingCallback* callback) = 0;
-	virtual GHOG_LIB_STATUS train_sync(cv::Mat train_data,
+	virtual void train_sync(cv::Mat train_data,
 		cv::Mat expected_outputs) = 0;
 
 	virtual GHOG_LIB_STATUS classify_async(cv::Mat input,
