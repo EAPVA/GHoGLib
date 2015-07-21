@@ -101,8 +101,6 @@ GHOG_LIB_STATUS HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 	cv::Mat& magnitude,
 	cv::Mat& phase)
 {
-	int block_posx = 0;
-	int block_posy = 0;
 	for(int i = 0; i < input_img.rows; ++i)
 	{
 		float* input_ptr = input_img.ptr< float >(i);
@@ -135,20 +133,8 @@ GHOG_LIB_STATUS HogDescriptor::calc_gradient_sync(cv::Mat input_img,
 					phase_max = (atan(dy / dx) / CUDART_PI_F) + 0.5f;
 				}
 			}
-
-			magnitude_ptr[j] = mag_max
-				* _gaussian_window.at< float >(block_posy, block_posx);
-			block_posx++;
-			if(block_posx > _gaussian_window.cols)
-			{
-				block_posx = 0;
-			}
+			magnitude_ptr[j] = mag_max;
 			phase_ptr[j] = phase_max;
-		}
-		block_posy++;
-		if(block_posy > _gaussian_window.rows)
-		{
-			block_posy = 0;
 		}
 	}
 	return GHOG_LIB_STATUS_OK;
@@ -456,19 +442,6 @@ void HogDescriptor::load_settings(std::string filename)
 	_norm_type = GHOG_LIB_NORM_TYPE_L2_HYS;
 	cv::Size block_dim(_block_size.width * _cell_size.width,
 		_block_size.height * _cell_size.height);
-	_gaussian_window.create(block_dim, CV_32FC1);
-	float win_sigma = 3.0f;
-	float scale = (1.0f / (2 * win_sigma * win_sigma));
-	for(int i = 0; i < _gaussian_window.rows; ++i)
-	{
-		for(int j = 0; j < _gaussian_window.cols; ++j)
-		{
-			float di = i - ((_gaussian_window.rows - 1) / 2.0f);
-			float dj = j - ((_gaussian_window.cols - 1) / 2.0f);
-			_gaussian_window.at< float >(i, j) = std::exp(
-				-(di * di + dj * dj) * scale);
-		}
-	}
 }
 
 void HogDescriptor::set_classifier(IClassifier* classifier)

@@ -78,8 +78,8 @@ GHOG_LIB_STATUS HogGPU::image_normalization_sync(cv::Mat& image)
 	float* device_input_img;
 	cudaHostGetDevicePointer(&device_input_img, input_img_ptr, 0);
 
-	gamma_norm_kernel<<<grid_size, block_size>>>(device_input_img, image.rows,
-		image.cols, image.step1());
+	gpu::gamma_norm_kernel<<<grid_size, block_size>>>(device_input_img,
+		image.rows, image.cols, image.step1());
 	cudaDeviceSynchronize();
 	return GHOG_LIB_STATUS_OK;
 }
@@ -124,7 +124,7 @@ GHOG_LIB_STATUS HogGPU::calc_gradient_sync(cv::Mat input_img,
 	cudaHostGetDevicePointer(&device_magnitude, magnitude_ptr, 0);
 	cudaHostGetDevicePointer(&device_phase, phase_ptr, 0);
 
-	gradient_kernel<<<grid_size, block_size>>>(device_input_img,
+	gpu::gradient_kernel<<<grid_size, block_size>>>(device_input_img,
 		device_magnitude, device_phase, input_img.rows, input_img.cols,
 		input_img.step1(), magnitude.step1(), phase.step1());
 	cudaDeviceSynchronize();
@@ -185,7 +185,7 @@ GHOG_LIB_STATUS HogGPU::create_descriptor_sync(cv::Mat magnitude,
 
 //	int cell_row_step = _cell_grid.width * _num_bins;
 
-	histogram_kernel<<<grid_size, block_size_hist>>>(device_magnitude,
+	gpu::histogram_kernel<<<grid_size, block_size_hist>>>(device_magnitude,
 		device_phase, device_histograms, magnitude.cols, magnitude.rows,
 		_cell_grid.width, _cell_grid.height, magnitude.step1(), phase.step1(),
 		histograms.step1(), _cell_size.width, _cell_size.height, _num_bins);
@@ -202,7 +202,7 @@ GHOG_LIB_STATUS HogGPU::create_descriptor_sync(cv::Mat magnitude,
 
 	cudaDeviceSynchronize();
 
-	block_normalization_kernel<<<grid_size, block_size_norm>>>(
+	gpu::block_normalization_kernel<<<grid_size, block_size_norm>>>(
 		device_histograms, device_descriptor, histograms.step1(),
 		hog_block_grid.width, hog_block_grid.height, _block_size.width,
 		_block_size.height, _num_bins, _cell_grid.width, _block_stride.width,

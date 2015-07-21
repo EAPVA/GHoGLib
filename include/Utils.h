@@ -15,6 +15,9 @@ namespace ghog
 namespace lib
 {
 
+/**
+ * \brief General utilities
+ */
 class Utils
 {
 public:
@@ -22,6 +25,11 @@ public:
 	{
 	}
 
+	/**
+	 * \brief Calculates ceil(numerator / denominator) for each dimension of the inputs.
+	 *
+	 * Currently not in use on the library.
+	 */
 	static cv::Size partition(cv::Size numerator,
 		cv::Size denominator);
 };

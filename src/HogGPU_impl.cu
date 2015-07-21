@@ -2,6 +2,10 @@
 
 #include "math_constants.h"
 
+namespace ghog {
+namespace lib {
+namespace gpu {
+
 __global__ void gamma_norm_kernel(float* img,
 	int image_height,
 	int image_width,
@@ -242,3 +246,7 @@ __global__ void block_normalization_kernel(float* histograms,
 	descriptor[elements_per_block * block_idx + s_blocks_idx] =
 		s_blocks[s_blocks_idx] / L1_norm[threadIdx.z];
 }
+
+} /* namespace gpu */
+} /* namespace ghog */
+} /* namespace lib */

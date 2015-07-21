@@ -40,3 +40,7 @@
 src/.gitignore
 include/.gitignore
 3rdParty/.gitignore
+
+html/*
+latex/*
+
