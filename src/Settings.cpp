@@ -82,9 +82,9 @@ void Settings::save_default_settings(std::string filename)
 		GHOG_LIB_DEFAULT_BLOCK_STRIDE.width);
 	descriptor_module->SetAttribute("BLOCK_STRIDE_ROWS",
 		GHOG_LIB_DEFAULT_BLOCK_STRIDE.height);
-	descriptor_module->SetAttribute("CELL_GRID_COLS",
+	descriptor_module->SetAttribute("DETECTION_WINDOW_COLS",
 		GHOG_LIB_DEFAULT_WIN_SIZE.width);
-	descriptor_module->SetAttribute("CELL_GRID_ROWS",
+	descriptor_module->SetAttribute("DETECTION_WINDOW_ROWS",
 		GHOG_LIB_DEFAULT_WIN_SIZE.height);
 	doc.InsertEndChild(descriptor_module);
 	tinyxml2::XMLElement* classifier_module = doc.NewElement("Classifier");

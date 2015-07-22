@@ -5,8 +5,8 @@
  *      Author: teider
  */
 
-#ifndef MULTILAYERPERCEPTRON_H_
-#define MULTILAYERPERCEPTRON_H_
+#ifndef GHOGLIB_MULTILAYERPERCEPTRON_H_
+#define GHOGLIB_MULTILAYERPERCEPTRON_H_
 
 #include <vector>
 
@@ -175,4 +175,4 @@ protected:
 
 } /* namespace lib */
 } /* namespace ghog */
-#endif /* MULTILAYERPERCEPTRON_H_ */
+#endif /* GHOGLIB_MULTILAYERPERCEPTRON_H_ */

@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef HOGCALLBACKS_H_
-#define HOGCALLBACKS_H_
+#ifndef GHOGLIB_HOGCALLBACKS_H_
+#define GHOGLIB_HOGCALLBACKS_H_
 
 #include <opencv2/core/core.hpp>
 
@@ -103,4 +103,4 @@ public:
 
 } /* namespace lib */
 } /* namespace ghog */
-#endif /* HOGCALLBACKS_H_ */
+#endif /* GHOGLIB_HOGCALLBACKS_H_ */

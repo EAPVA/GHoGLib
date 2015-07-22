@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef ICLASSIFIER_H_
-#define ICLASSIFIER_H_
+#ifndef GHOGLIB_ICLASSIFIER_H_
+#define GHOGLIB_ICLASSIFIER_H_
 
 #include <string>
 
@@ -145,4 +145,4 @@ public:
 
 } /* namespace lib */
 } /* namespace ghog */
-#endif /* ICLASSIFIER_H_ */
+#endif /* GHOGLIB_ICLASSIFIER_H_ */

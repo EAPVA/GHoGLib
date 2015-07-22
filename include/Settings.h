@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef SETTINGS_H_
-#define SETTINGS_H_
+#ifndef GHOGLIB_SETTINGS_H_
+#define GHOGLIB_SETTINGS_H_
 
 #include <string>
 
@@ -117,4 +117,4 @@ void Settings::save(std::string module,
 
 } /* namespace lib */
 } /* namespace ghog */
-#endif /* SETTINGS_H_ */
+#endif /* GHOGLIB_SETTINGS_H_ */

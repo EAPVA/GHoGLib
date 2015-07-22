@@ -256,7 +256,7 @@ void HogDescriptor::calc_histogram(cv::Mat magnitude,
 	float mag_total = 0.0f;
 	float* cell_histogram_ptr = cell_histogram.ptr< float >(0);
 
-	for(int i = 0; i < cell_histogram.cols; ++i)
+	for(int i = 0; i < _num_bins; ++i)
 	{
 		cell_histogram_ptr[i] = 0.0f;
 	}
@@ -432,12 +432,12 @@ void HogDescriptor::load_settings(std::string filename)
 		"BLOCK_STRIDE_COLS");
 	_block_stride.height = _settings.load_int(std::string("Descriptor"),
 		"BLOCK_STRIDE_ROWS");
-	_cell_grid.width = _settings.load_int(std::string("Descriptor"),
-		"CELL_GRID_COLS");
-	_cell_grid.height = _settings.load_int(std::string("Descriptor"),
-		"CELL_GRID_ROWS");
-	_window_size.height = _cell_grid.height * _cell_size.height;
-	_window_size.width = _cell_grid.width * _cell_size.width;
+	_window_size.height = _settings.load_int(std::string("Descriptor"),
+		"DETECTION_WINDOW_ROWS");
+	_window_size.width = _settings.load_int(std::string("Descriptor"),
+		"DETECTION_WINDOW_COLS");
+
+	_cell_grid = Utils::partition(_window_size, _cell_size);
 
 	_norm_type = GHOG_LIB_NORM_TYPE_L2_HYS;
 	cv::Size block_dim(_block_size.width * _cell_size.width,
@@ -481,7 +481,9 @@ std::string HogDescriptor::get_module(std::string param_name)
 		|| (param_name == "BLOCK_SIZE_ROWS") || (param_name == "NUMBER_OF_BINS")
 		|| (param_name == "BLOCK_STRIDE_COLS")
 		|| (param_name == "BLOCK_STRIDE_ROWS")
-		|| (param_name == "CELL_GRID_COLS") || (param_name == "CELL_GRID_ROWS"))
+//		|| (param_name == "CELL_GRID_COLS") || (param_name == "CELL_GRID_ROWS")
+		|| (param_name == "DETECTION_WINDOW_COLS")
+		|| (param_name == "DETECTION_WINDOWS_ROWS"))
 	{
 		return "Descriptor";
 	} else if((param_name == "TYPE") || (param_name == "FILENAME"))

@@ -7,6 +7,8 @@
 
 #include <include/Utils.h>
 
+#include <iostream>
+
 namespace ghog
 {
 namespace lib
@@ -19,12 +21,12 @@ cv::Size Utils::partition(cv::Size numerator,
 	ret.width = numerator.width / denominator.width;
 	ret.height = numerator.height / denominator.height;
 
-	if(ret.width % numerator.width)
+	if(numerator.width % denominator.width > 0)
 	{
 		ret.width++;
 	}
 
-	if(ret.height % numerator.height)
+	if(numerator.height % denominator.height > 0)
 	{
 		ret.height++;
 	}

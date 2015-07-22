@@ -5,8 +5,8 @@
  *      Author: teider
  */
 
-#ifndef SVMCLASSIFIER_H_
-#define SVMCLASSIFIER_H_
+#ifndef GHOGLIB_SVMCLASSIFIER_H_
+#define GHOGLIB_SVMCLASSIFIER_H_
 
 #include <include/IClassifier.h>
 
@@ -100,4 +100,4 @@ private:
 
 } /* namespace lib */
 } /* namespace ghog */
-#endif /* SVMCLASSIFIER_H_ */
+#endif /* GHOGLIB_SVMCLASSIFIER_H_ */

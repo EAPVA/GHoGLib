@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef HOGCPU_H_
-#define HOGCPU_H_
+#ifndef GHOGLIB_HOGCPU_H_
+#define GHOGLIB_HOGCPU_H_
 
 #include <vector>
 #include <string>
@@ -393,4 +393,4 @@ protected:
 } /* namespace lib */
 } /* namespace ghog */
 
-#endif /* HOGCPU_H_ */
+#endif /* GHOGLIB_HOGCPU_H_ */

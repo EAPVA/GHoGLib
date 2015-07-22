@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef MLPSETTINGS_H_
-#define MLPSETTINGS_H_
+#ifndef GHOGLIB_MLPSETTINGS_H_
+#define GHOGLIB_MLPSETTINGS_H_
 
 #include "Settings.h"
 
@@ -69,4 +69,4 @@ protected:
 
 } /* namespace lib */
 } /* namespace ghog */
-#endif /* MLPSETTINGS_H_ */
+#endif /* GHOGLIB_MLPSETTINGS_H_ */

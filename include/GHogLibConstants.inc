@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef GHOGLIBCONSTANTS_H_
-#define GHOGLIBCONSTANTS_H_
+#ifndef GHOGLIB_GHOGLIBCONSTANTS_H_
+#define GHOGLIB_GHOGLIBCONSTANTS_H_
 
 #include <opencv2/core/core.hpp>
 
@@ -33,9 +33,9 @@ const int GHOG_LIB_DEFAULT_NUM_BINS = 9;
 const cv::Size GHOG_LIB_DEFAULT_CELL_SIZE = cv::Size(8, 8);
 const cv::Size GHOG_LIB_DEFAULT_BLOCK_SIZE = cv::Size(2, 2);
 const cv::Size GHOG_LIB_DEFAULT_BLOCK_STRIDE = cv::Size(1, 1);
-const cv::Size GHOG_LIB_DEFAULT_WIN_SIZE = cv::Size(8, 16);
+const cv::Size GHOG_LIB_DEFAULT_WIN_SIZE = cv::Size(64, 128);
 
 } /* namespace lib */
 } /* namespace ghog */
 
-#endif /* GHOGLIBCONSTANTS_H_ */
+#endif /* GHOGLIB_GHOGLIBCONSTANTS_H_ */

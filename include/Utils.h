@@ -5,8 +5,8 @@
  *      Author: teider
  */
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef GHOGLIB_UTILS_H_
+#define GHOGLIB_UTILS_H_
 
 #include <opencv2/core/core.hpp>
 
@@ -16,7 +16,7 @@ namespace lib
 {
 
 /**
- * \brief General utilities
+ * \brief General utilities.
  */
 class Utils
 {
@@ -37,4 +37,4 @@ public:
 } /* namespace lib */
 } /* namespace ghog */
 
-#endif /* UTILS_H_ */
+#endif /* GHOGLIB_UTILS_H_ */

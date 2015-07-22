@@ -5,8 +5,8 @@
  *      Author: marcelo
  */
 
-#ifndef HOGGPU_H_
-#define HOGGPU_H_
+#ifndef GHOGLIB_HOGGPU_H_
+#define GHOGLIB_HOGGPU_H_
 
 #include <vector>
 #include <string>
@@ -95,4 +95,4 @@ public:
 } /* namespace lib */
 } /* namespace ghog */
 
-#endif /* HOGGPU_H_ */
+#endif /* GHOGLIB_HOGGPU_H_ */
